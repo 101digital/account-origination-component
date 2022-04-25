@@ -5,23 +5,30 @@ import React, { useCallback, useMemo, useState } from "react";
 import { AddressDetailsData } from "../components/address-detail-component/model";
 import { MainDetailsData } from "../components/main-detail-component/model";
 import { NationalityData } from "../components/nationality-component/model";
-import { AccountOriginationService } from "../service/onboarding-service";
-import { AccountOriginationData, Profile, ApplicationDetails } from "../types";
+import { CustomerInvokeService } from "../service/onboarding-service";
+import {
+  CustomerInvokeData,
+  Profile,
+  ApplicationDetails,
+  ApplicationListData
+} from "../types";
 
-const onboardingService = AccountOriginationService.instance();
+const onboardingService = CustomerInvokeService.instance();
 
-export interface AccountOriginationContextData {
-  data: AccountOriginationData;
-  setAccountOriginationData: (data: AccountOriginationData) => void;
+export interface CustomerInvokeContextData {
+  data: CustomerInvokeData;
+  setCustomerInvokeData: (data: CustomerInvokeData) => void;
   isLoadingProfile: boolean;
   profile?: Profile;
   errorLoadProfile?: Error;
   getUserProfile: () => void;
   setUserProfile: (profile: Profile) => void;
+  updateProfile: (profile: any) => void;
   isUpdatingMainDetails: boolean;
   isUpdatedMainDetails: boolean;
-  updateMainDetails: (params: MainDetailsData) => void;
-  errorUpdateMainDetails?: Error;
+  addMainDetails: (params: MainDetailsData) => void;
+  errorAddMainDetails?: Error;
+  isInValidateUser?: boolean;
   isUpdatingNationality: boolean;
   isUpdatedNationality: boolean;
   updateNationality: (params: NationalityData) => void;
@@ -38,27 +45,32 @@ export interface AccountOriginationContextData {
   updateAccountDetails: (params: AccountDetailsData) => void;
   clearData: () => void;
   isCreatingApplication: boolean;
+  isGetApplicationList: boolean;
   isCreatedApplication: boolean;
   createApplication: (minIncome?: number, maxIncome?: number) => void;
+  getApplicationList: () => void;
   errorCreateApplication?: Error;
+  errorGetApplicationList?: Error;
   isUpdatedOtherDetails: boolean;
   isUpdatedAccountDetails: boolean;
   applicationDetails?: ApplicationDetails;
+  applicationList?: ApplicationListData;
 }
 
-export const onboardingDefaultValue: AccountOriginationContextData = {
+export const onboardingDefaultValue: CustomerInvokeContextData = {
   data: {},
-  setAccountOriginationData: () => null,
+  setCustomerInvokeData: () => null,
   isLoadingProfile: false,
   isUpdatingAddressDetails: false,
   isUpdatingMainDetails: false,
   isUpdatingNationality: false,
-  updateMainDetails: () => null,
+  addMainDetails: () => null,
   updateNationality: () => null,
   getUserProfile: () => null,
   updateAddressDetails: () => null,
   clearErrors: () => null,
   setUserProfile: () => null,
+  updateProfile: () => null,
   isUpdatedAddressDetails: false,
   isUpdatedMainDetails: false,
   isUpdatedNationality: false,
@@ -66,18 +78,20 @@ export const onboardingDefaultValue: AccountOriginationContextData = {
   updateAccountDetails: () => null,
   clearData: () => null,
   createApplication: () => null,
+  getApplicationList: () => null,
   isCreatingApplication: false,
+  isGetApplicationList: false,
   isCreatedApplication: false,
   isUpdatedAccountDetails: false,
   isUpdatedOtherDetails: false
 };
 
-export const AccountOriginationContext = React.createContext<
-  AccountOriginationContextData
+export const CustomerInvokeContext = React.createContext<
+  CustomerInvokeContextData
 >(onboardingDefaultValue);
 
-export function useAccountOriginationContextValue(): AccountOriginationContextData {
-  const [_data, setData] = useState<AccountOriginationData>({});
+export function useCustomerInvokeContextValue(): CustomerInvokeContextData {
+  const [_data, setData] = useState<CustomerInvokeData>({});
 
   const [_profile, setProfile] = useState<Profile | undefined>(undefined);
   const [_isLoadingProfile, setLoadingProfile] = useState(false);
@@ -87,7 +101,8 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
 
   const [_isUpdatingMainDetails, setUpdatingMainDetails] = useState(false);
   const [_isUpdatedMainDetails, setUpdatedMainDetails] = useState(false);
-  const [_errorUpdateMainDetails, setErrorUpdateMainDetails] = useState<
+  const [_validateUser, setValidateUser] = useState(false);
+  const [_errorAddMainDetails, setErrorAddMainDetails] = useState<
     Error | undefined
   >(undefined);
 
@@ -116,6 +131,14 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
     ApplicationDetails | undefined
   >(undefined);
 
+  const [_isGetApplicationList, setGetApplicationList] = useState(false);
+  const [_applicationListData, setApplicationListData] = useState<
+    ApplicationListData[] | undefined
+  >(undefined);
+  const [_errorGetApplicationList, setErrorGetApplicationList] = useState<
+    Error | undefined
+  >(undefined);
+
   const getUserProfile = useCallback(async () => {
     try {
       setLoadingProfile(true);
@@ -132,8 +155,11 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
     if (_errorLoadProfile) {
       setErrorLoadProfile(undefined);
     }
-    if (_errorUpdateMainDetails) {
-      setErrorUpdateMainDetails(undefined);
+    if (_errorAddMainDetails) {
+      setErrorAddMainDetails(undefined);
+    }
+    if (_validateUser) {
+      setValidateUser(false);
     }
     if (_errorUpdateAddressDetails) {
       setErrorUpdateAddressDetails(undefined);
@@ -141,19 +167,24 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
     if (_errorCreateApplication) {
       setErrorCreateApplication(undefined);
     }
+    if (_errorGetApplicationList) {
+      setErrorGetApplicationList(undefined);
+    }
   }, [
     _errorLoadProfile,
-    _errorUpdateMainDetails,
+    _errorAddMainDetails,
+    _validateUser,
     _errorUpdateNationality,
     _errorUpdateAddressDetails,
-    _errorCreateApplication
+    _errorCreateApplication,
+    _errorGetApplicationList
   ]);
 
-  const updateMainDetails = useCallback(
+  const addMainDetails = useCallback(
     async (params: MainDetailsData) => {
       try {
         setUpdatingMainDetails(true);
-        await onboardingService.updateMainDetails(_profile?.userId!, {
+        const validateUserResponse = await onboardingService.addMainDetails({
           ...params,
           dateOfBirth: moment(params.dateOfBirth, "DD / MM / YYYY").format(
             "YYYY-MM-DD"
@@ -168,18 +199,45 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
               ]
             : []
         });
-        setData({
-          ..._data,
-          mainDetails: params
-        });
-        setUpdatedMainDetails(true);
-        setTimeout(() => {
-          setUpdatedMainDetails(false);
-        }, 50);
-        setUpdatingMainDetails(false);
+        if (validateUserResponse.exist === true) {
+          setValidateUser(true);
+        } else {
+          await onboardingService.updateMainDetails(_profile?.userId!, {
+            ...params,
+            dateOfBirth: moment(params.dateOfBirth, "DD / MM / YYYY").format(
+              "YYYY-MM-DD"
+            ),
+            listCustomFields: [
+              {
+                customKey: "SubProcessStep",
+                customValue: "Step1"
+              }
+            ],
+            contacts: params.email
+              ? [
+                  {
+                    contactType: "EMAIL",
+                    contactValue: params.email,
+                    isPrimary: true
+                  }
+                ]
+              : []
+          });
+
+          setValidateUser(false);
+          setData({
+            ..._data,
+            mainDetails: params
+          });
+          setUpdatedMainDetails(true);
+          setTimeout(() => {
+            setUpdatedMainDetails(false);
+          }, 50);
+          setUpdatingMainDetails(false);
+        }
       } catch (error) {
         setUpdatingMainDetails(false);
-        setErrorUpdateMainDetails(error as Error);
+        setErrorAddMainDetails(error as Error);
       }
     },
     [_data, _profile]
@@ -191,8 +249,15 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
         setUpdatingNationality(true);
         await onboardingService.updateNationalityDetails(_profile?.userId!, {
           ...params,
-          isCitizen: params.isCitizen === "yes"
+          isCitizen: params.isCitizen === "yes",
+          listCustomFields: [
+            {
+              customKey: "SubProcessStep",
+              customValue: "Step2"
+            }
+          ]
         });
+
         setData({
           ..._data,
           nationalityDetails: params
@@ -249,12 +314,152 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
     setProfile(profile);
   }, []);
 
-  const setAccountOriginationData = useCallback(
-    (data: AccountOriginationData) => {
-      setAccountOriginationData(data);
-    },
-    []
-  );
+  const updateProfile = useCallback((profile: any) => {
+    if (profile?.middleName) {
+      setData({
+        ..._data,
+        mainDetails: {
+          firstName: profile?.firstName,
+          middleName: profile?.middleName,
+          lastName: profile?.lastName,
+          dateOfBirth:
+            moment(profile?.dateOfBirth, "YYYY-MM-DD").format(
+              "DD / MM / YYYY"
+            ) ?? "",
+          maritalStatus: profile?.maritalStatus,
+          gender: profile?.gender,
+          email: profile?.contacts[0]?.contactValue
+        }
+      });
+    }
+
+    if (profile?.nationality) {
+      setData({
+        ..._data,
+        mainDetails: {
+          firstName: profile?.firstName,
+          middleName: profile?.middleName,
+          lastName: profile?.lastName,
+          dateOfBirth:
+            moment(profile?.dateOfBirth, "YYYY-MM-DD").format(
+              "DD / MM / YYYY"
+            ) ?? "",
+          maritalStatus: profile?.maritalStatus,
+          gender: profile?.gender,
+          email: profile?.contacts[0]?.contactValue
+        },
+        nationalityDetails: {
+          placeOfBirth: profile.placeOfBirth,
+          nationality: profile.nationality,
+          isCitizen: profile.isCitizen === false ? "no" : "yes"
+        }
+      });
+    }
+
+    if (profile?.addresses && profile?.addresses.length > 0) {
+      setData({
+        ..._data,
+        mainDetails: {
+          firstName: profile?.firstName,
+          middleName: profile?.middleName,
+          lastName: profile?.lastName,
+          dateOfBirth:
+            moment(profile?.dateOfBirth, "YYYY-MM-DD").format(
+              "DD / MM / YYYY"
+            ) ?? "",
+          maritalStatus: profile?.maritalStatus,
+          gender: profile?.gender,
+          email: profile?.contacts[0]?.contactValue
+        },
+        nationalityDetails: {
+          placeOfBirth: profile.placeOfBirth,
+          nationality: profile.nationality,
+          isCitizen: profile.isCitizen === false ? "no" : "yes"
+        },
+        addresses: [
+          {
+            addressType: 1, //profile?.addresses[profile?.addresses.length -1].addressType,
+            line1: profile?.addresses[profile?.addresses.length - 1].line1,
+            line2: profile?.addresses[profile?.addresses.length - 1].line2,
+            line3: profile?.addresses[profile?.addresses.length - 1].line3,
+            country: profile?.addresses[profile?.addresses.length - 1].country,
+            postcode:
+              profile?.addresses[profile?.addresses.length - 1].postcode,
+            province:
+              profile?.addresses[profile?.addresses.length - 1].province,
+            region: profile?.addresses[profile?.addresses.length - 1].region,
+            buildingName:
+              profile?.addresses[profile?.addresses.length - 1].buildingName,
+            city: profile?.addresses[profile?.addresses.length - 1].city
+          }
+        ]
+      });
+    }
+
+    if (profile?.employmentDetails && profile?.employmentDetails.length > 0) {
+      setData({
+        ..._data,
+        mainDetails: {
+          firstName: profile?.firstName,
+          middleName: profile?.middleName,
+          lastName: profile?.lastName,
+          dateOfBirth:
+            moment(profile?.dateOfBirth, "YYYY-MM-DD").format(
+              "DD / MM / YYYY"
+            ) ?? "",
+          maritalStatus: profile?.maritalStatus,
+          gender: profile?.gender,
+          email: profile?.contacts[0]?.contactValue
+        },
+        nationalityDetails: {
+          placeOfBirth: profile.placeOfBirth,
+          nationality: profile.nationality,
+          isCitizen: profile.isCitizen === false ? "no" : "yes"
+        },
+        addresses: [
+          {
+            addressType: 1, //profile?.addresses[profile?.addresses.length -1].addressType,
+            line1: profile?.addresses[profile?.addresses.length - 1].line1,
+            line2: profile?.addresses[profile?.addresses.length - 1].line2,
+            line3: profile?.addresses[profile?.addresses.length - 1].line3,
+            country: profile?.addresses[profile?.addresses.length - 1].country,
+            postcode:
+              profile?.addresses[profile?.addresses.length - 1].postcode,
+            province:
+              profile?.addresses[profile?.addresses.length - 1].province,
+            region: profile?.addresses[profile?.addresses.length - 1].region,
+            buildingName:
+              profile?.addresses[profile?.addresses.length - 1].buildingName,
+            city: profile?.addresses[profile?.addresses.length - 1].city
+          }
+        ],
+        otherDetails: {
+          status:
+            profile?.employmentDetails[profile?.employmentDetails.length - 1]
+              .status,
+          occupation:
+            profile?.employmentDetails[profile?.employmentDetails.length - 1]
+              .designation,
+          companyType:
+            profile?.employmentDetails[profile?.employmentDetails.length - 1]
+              .companyType,
+          companyName:
+            profile?.employmentDetails[profile?.employmentDetails.length - 1]
+              .companyName,
+          city:
+            profile?.employmentDetails[profile?.employmentDetails.length - 1]
+              .addresses[0].city,
+          postcode:
+            profile?.employmentDetails[profile?.employmentDetails.length - 1]
+              .addresses[0].postcode
+        }
+      });
+    }
+  }, []);
+
+  const setCustomerInvokeData = useCallback((data: CustomerInvokeData) => {
+    setCustomerInvokeData(data);
+  }, []);
 
   const updateAccountDetails = useCallback(
     (params: AccountDetailsData) => {
@@ -271,22 +476,52 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
   );
 
   const updateOtherDetails = useCallback(
-    (params: OtherDetailsData) => {
-      setData({
-        ..._data,
-        otherDetails: params
-      });
-      setUpdatedOtherDetails(true);
-      setTimeout(() => {
+    async (params: OtherDetailsData) => {
+      try {
+        setUpdatedOtherDetails(true);
+
+        let employmentDetails = [
+          {
+            status: params?.status,
+            designation: params?.occupation,
+            companyType: params?.companyType,
+            companyName: params?.companyName,
+            addresses: [
+              {
+                addressType: "Residential",
+                city: params?.city,
+                postcode: params?.postcode
+              }
+            ]
+          }
+        ];
+        await onboardingService.updateEmploymentDetails(
+          _profile?.userId!,
+          employmentDetails
+        );
+
+        setData({
+          ..._data,
+          otherDetails: params
+        });
+        setUpdatedOtherDetails(true);
+        setTimeout(() => {
+          setUpdatedOtherDetails(false);
+        }, 50);
+      } catch (error) {
+        console.log("error ", error);
+
         setUpdatedOtherDetails(false);
-      }, 50);
+        // setErrorUpdateAddressDetails(error as Error);
+      }
     },
-    [_data]
+    [_data, _profile]
   );
 
   const clearData = useCallback(() => {
     setData({});
     setApplicationDetails(undefined);
+    setApplicationListData(undefined);
   }, []);
 
   const createApplication = useCallback(
@@ -318,7 +553,7 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
             contactDetails: _data.mainDetails.email
               ? [
                   {
-                    contactType: "Email",
+                    contactType: "EMAIL",
                     contactValue: _data.mainDetails?.email!
                   }
                 ]
@@ -337,13 +572,15 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
                 county: "-"
               })) ?? []
           },
-          employmentDetails: {
-            status: _data.otherDetails.status ?? "",
-            companyName: _data.otherDetails.companyName ?? "",
-            companyType: _data.otherDetails.companyType ?? "",
-            addresses: [{ ..._data.otherDetails }],
-            designation: _data.otherDetails.occupation
-          },
+          employmentDetails: [
+            {
+              status: _data.otherDetails.status ?? "",
+              companyName: _data.otherDetails.companyName ?? "",
+              companyType: _data.otherDetails.companyType ?? "",
+              addresses: [{ ..._data.otherDetails }],
+              designation: _data.otherDetails.occupation
+            }
+          ],
           credit: {
             applicant: {
               individual: {
@@ -354,7 +591,13 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
                 minMonthlyIncome: minIncome
               }
             }
-          }
+          },
+          customFields: [
+            {
+              customKey: "SubProcessStep",
+              customValue: "Step1"
+            }
+          ]
         });
         setApplicationDetails({
           applicationId: data.applicationId,
@@ -375,6 +618,20 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
     [_data]
   );
 
+  const getApplicationList = useCallback(async () => {
+    try {
+      setGetApplicationList(true);
+      const { data } = await onboardingService.getApplicationList();
+      setApplicationListData(data);
+      setTimeout(() => {
+        setGetApplicationList(false);
+      }, 50);
+    } catch (error) {
+      setGetApplicationList(false);
+      setErrorGetApplicationList(error as Error);
+    }
+  }, []);
+
   return useMemo(
     () => ({
       getUserProfile,
@@ -382,9 +639,10 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
       profile: _profile,
       isLoadingProfile: _isLoadingProfile,
       errorLoadProfile: _errorLoadProfile,
-      updateMainDetails,
+      addMainDetails,
       isUpdatingMainDetails: _isUpdatingMainDetails,
-      errorUpdateMainDetails: _errorUpdateMainDetails,
+      errorAddMainDetails: _errorAddMainDetails,
+      isInValidateUser: _validateUser,
       updateNationality,
       isUpdatingNationality: _isUpdatingNationality,
       errorUpdateNationality: _errorUpdateNationality,
@@ -392,10 +650,12 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
       isUpdatingAddressDetails: _isUpdatingAddressDetails,
       errorUpdateAddressDetails: _errorUpdateAddressDetails,
       setUserProfile,
+      updateProfile,
+      getApplicationList,
       isUpdatedAddressDetails: _isUpdatedAddressDetails,
       isUpdatedMainDetails: _isUpdatedMainDetails,
       isUpdatedNationality: _isUpdatedNationality,
-      setAccountOriginationData,
+      setCustomerInvokeData,
       data: _data,
       updateAccountDetails,
       updateOtherDetails,
@@ -403,19 +663,25 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
       createApplication,
       isCreatedApplication: _isCreatedApplication,
       isCreatingApplication: _isCreatingApplication,
+      isGetApplicationList: _isGetApplicationList,
       errorCreateApplication: _errorCreateApplication,
+      errorGetApplicationList: _errorGetApplicationList,
       isUpdatedAccountDetails: _isUpdatedAccountDetails,
       isUpdatedOtherDetails: _isUpdatedOtherDetails,
-      applicationDetails: _applicationDetails
+      applicationDetails: _applicationDetails,
+      applicationList: _applicationListData
     }),
     [
       _applicationDetails,
+      _applicationListData,
       _data,
       _isUpdatedOtherDetails,
       _isUpdatedAccountDetails,
       _isCreatedApplication,
       _isCreatingApplication,
+      _isGetApplicationList,
       _errorCreateApplication,
+      _errorGetApplicationList,
       _isUpdatedNationality,
       _isUpdatedMainDetails,
       _isUpdatedAddressDetails,
@@ -423,7 +689,8 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
       _isLoadingProfile,
       _errorLoadProfile,
       _isUpdatingMainDetails,
-      _errorUpdateMainDetails,
+      _errorAddMainDetails,
+      _validateUser,
       _isUpdatingNationality,
       _errorUpdateNationality,
       _isUpdatingAddressDetails,
