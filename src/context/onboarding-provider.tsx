@@ -1,22 +1,22 @@
 import React, { ReactNode } from "react";
 import {
-  useCustomerInvokeContextValue,
-  CustomerInvokeContext
+  useAccountOriginationContextValue,
+  AccountOriginationContext
 } from "./onboarding-context";
 
-export type CustomerInvokeProviderProps = {
+export type AccountOriginationProviderProps = {
   children: ReactNode;
 };
 
-const CustomerInvokeProvider = (props: CustomerInvokeProviderProps) => {
+const AccountOriginationProvider = (props: AccountOriginationProviderProps) => {
   const { children } = props;
-  const onboardingContextData = useCustomerInvokeContextValue();
+  const onboardingContextData = useAccountOriginationContextValue();
 
   return (
-    <CustomerInvokeContext.Provider value={onboardingContextData}>
+    <AccountOriginationContext.Provider value={onboardingContextData}>
       {children}
-    </CustomerInvokeContext.Provider>
+    </AccountOriginationContext.Provider>
   );
 };
 
-export default CustomerInvokeProvider;
+export default AccountOriginationProvider;

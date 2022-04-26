@@ -2,7 +2,9 @@ import {
   AddressParams,
   CreateApplicationParams,
   MainDetailParam,
-  NationalityParam
+  NationalityParam,
+  ValidateUserDetailsParam,
+  UpdateKYCApplicantParam
 } from "../types";
 
 type OnboaringClient = {
@@ -55,6 +57,37 @@ export class AccountOriginationService {
     }
   };
 
+  updateNationalityDetails = async (
+    userId: string,
+    details: NationalityParam
+  ) => {
+    if (this._membershipClient) {
+      const response = await this._membershipClient.patch(
+        `users/${userId}`,
+        details
+      );
+      return response.data;
+    } else {
+      throw new Error("Onboaring Client is not registered");
+    }
+  };
+
+  updateAddressDetails = async (
+    userId: string,
+    isPresentAsPermAddress: boolean,
+    addresses: AddressParams[]
+  ) => {
+    if (this._membershipClient) {
+      const response = await this._membershipClient.patch(`users/${userId}`, {
+        isPresentAsPermAddress,
+        addresses
+      });
+      return response.data;
+    } else {
+      throw new Error("Onboaring Client is not registered");
+    }
+  };
+
   createApplication = async (params: CreateApplicationParams) => {
     if (this._membershipClient) {
       const response = await this._accountOriginationClient.post(
@@ -88,6 +121,43 @@ export class AccountOriginationService {
       const response = await this._accountOriginationClient.put(
         `/applications/${applicationId}/kyc/requests/${requestId}`,
         { reportNames: ["document"] }
+      );
+      return response.data;
+    } else {
+      throw new Error("Onboaring Client is not registered");
+    }
+  };
+
+  getApplicationStatus = async (applicationId:string) => {
+    if (this._accountOriginationClient) {
+      const response = await this._accountOriginationClient.get(`applications/${applicationId}/status`);
+      return response.data;
+    } else {
+      throw new Error("Onboaring Client is not registered");
+    }
+  };
+
+  validateUserDetails = async (details: ValidateUserDetailsParam) => {
+    if (this._membershipClient) {
+      const response = await this._membershipClient.post(
+        `users/validate`,
+        details
+      );
+      return response.data;
+    } else {
+      throw new Error("Onboaring Client is not registered");
+    }
+  };
+
+
+  updateKYCApplicant = async (
+    kycDetails: UpdateKYCApplicantParam,
+    applicationId:string
+  ) => {
+    if (this._accountOriginationClient) {
+      const response = await this._accountOriginationClient.patch(
+        `applications/${applicationId}`,
+        kycDetails
       );
       return response.data;
     } else {

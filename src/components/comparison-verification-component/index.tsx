@@ -34,8 +34,7 @@ export type ComparisonVerificationComponentProps = {
   header: HeaderComponentProps;
   onContinue: () => void;
   style?: ComparisonVerificationComponentStyles;
-  firstName?: string;
-  lastName?: string;
+  status?:any;
 };
 
 export type ComparisonVerificationComponentStyles = {
@@ -52,8 +51,7 @@ const ComparisonVerificationComponent = ({
   header,
   onContinue,
   initData,
-  firstName,
-  lastName
+  status
 }: ComparisonVerificationComponentProps) => {
   const styles: ComparisonVerificationComponentStyles = useMergeStyles(style);
   const { colors, i18n } = useContext(ThemeContext);
@@ -62,26 +60,37 @@ const ComparisonVerificationComponent = ({
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const [datePickerType, setDatePickerType] = useState("dateOfBirth");
   const [isAcceptCondition, setAcceptCondition] = useState(false);
+  const [isOCRClear, setOCRClear] = useState(false);
 
-  const {
-    addMainDetails,
-    isUpdatingMainDetails,
-    isUpdatedMainDetails
-  } = useContext(CustomerInvokeContext);
+  // const {
+  //   addMainDetails,
+  //   isUpdatingMainDetails,
+  //   isUpdatedMainDetails
+  // } = useContext(CustomerInvokeContext);
 
   const formikRef: any = useRef(null);
 
-  useEffect(() => {
-    if (isUpdatedMainDetails) {
-      onContinue();
-    }
-  }, [isUpdatedMainDetails]);
-
+  // useEffect(() => {
+  //   if (isUpdatedMainDetails) {
+  //     onContinue();
+  //   }
+  // }, [isUpdatedMainDetails]);
+  //
   useEffect(() => {
     setTimeout(() => {
       formikRef?.current?.validateForm();
     }, 0);
   }, []);
+
+  useEffect(() => {
+    if (status) {
+      if (status.statusValue !== "OCRConsider") {
+        setOCRClear(true)
+      }
+
+    }
+
+  }, [status]);
 
   return (
     <>
@@ -90,10 +99,12 @@ const ComparisonVerificationComponent = ({
         enableReinitialize={true}
         initialValues={
           initData ??
-          ComparisonVerificationData.empty(undefined, undefined, undefined)
+          ComparisonVerificationData.empty(initData.firstName, initData.middleName, initData.lastName,initData.dateOfBirth)
         }
         validationSchema={ComparisonVerificationSchema()}
-        onSubmit={addMainDetails}
+        onSubmit={()=>{
+
+        }}
       >
         {({ isValid, submitForm, setFieldValue }) => (
           <View style={styles.containerStyle}>
@@ -143,9 +154,10 @@ const ComparisonVerificationComponent = ({
                     borderWidth: 1,
                     borderRadius: 5,
                     borderBottomWidth: 1,
-                    backgroundColor: "#fff"
+                    backgroundColor: isOCRClear? '#EAEAEB':"#fff"
                   }
                 }}
+                editable={!isOCRClear}
               />
               <Text style={styles.labelTextStyle}>
                 {i18n?.t("customer_invoke_component.lbl_middle_name") ??
@@ -163,9 +175,10 @@ const ComparisonVerificationComponent = ({
                     borderWidth: 1,
                     borderRadius: 5,
                     borderBottomWidth: 1,
-                    backgroundColor: "#fff"
+                    backgroundColor: isOCRClear? '#EAEAEB':"#fff"
                   }
                 }}
+                editable={!isOCRClear}
               />
               <Text style={styles.labelTextStyle}>
                 {i18n?.t("customer_invoke_component.lbl_last_name") ??
@@ -183,9 +196,10 @@ const ComparisonVerificationComponent = ({
                     borderWidth: 1,
                     borderRadius: 5,
                     borderBottomWidth: 1,
-                    backgroundColor: "#fff"
+                    backgroundColor: isOCRClear? '#EAEAEB':"#fff"
                   }
                 }}
+                editable={!isOCRClear}
               />
               <Text style={styles.labelTextStyle}>
                 {i18n?.t("customer_invoke_component.lbl_dob") ??
@@ -284,7 +298,7 @@ const ComparisonVerificationComponent = ({
                   i18n?.t("customer_invoke_component.lbl_continue") ??
                   "Continue"
                 }
-                isLoading={isUpdatingMainDetails}
+                // isLoading={isUpdatingMainDetails}
                 disabled={!isValid || !isAcceptCondition}
                 disableColor={colors.secondaryButtonColor}
               />

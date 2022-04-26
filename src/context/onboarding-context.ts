@@ -5,30 +5,25 @@ import React, { useCallback, useMemo, useState } from "react";
 import { AddressDetailsData } from "../components/address-detail-component/model";
 import { MainDetailsData } from "../components/main-detail-component/model";
 import { NationalityData } from "../components/nationality-component/model";
-import { CustomerInvokeService } from "../service/onboarding-service";
-import {
-  CustomerInvokeData,
-  Profile,
-  ApplicationDetails,
-  ApplicationListData
-} from "../types";
+import { AccountOriginationService } from "../service/onboarding-service";
+import { AccountOriginationData, Profile, ApplicationDetails } from "../types";
 
-const onboardingService = CustomerInvokeService.instance();
+const onboardingService = AccountOriginationService.instance();
 
-export interface CustomerInvokeContextData {
-  data: CustomerInvokeData;
-  setCustomerInvokeData: (data: CustomerInvokeData) => void;
+export interface AccountOriginationContextData {
+  data: AccountOriginationData;
+  setAccountOriginationData: (data: AccountOriginationData) => void;
   isLoadingProfile: boolean;
+  isLoadingApplicationStatus: boolean;
   profile?: Profile;
   errorLoadProfile?: Error;
   getUserProfile: () => void;
+  getApplicationStatus: (applicationId:string) => void;
   setUserProfile: (profile: Profile) => void;
-  updateProfile: (profile: any) => void;
   isUpdatingMainDetails: boolean;
   isUpdatedMainDetails: boolean;
-  addMainDetails: (params: MainDetailsData) => void;
-  errorAddMainDetails?: Error;
-  isInValidateUser?: boolean;
+  updateMainDetails: (params: MainDetailsData) => void;
+  errorUpdateMainDetails?: Error;
   isUpdatingNationality: boolean;
   isUpdatedNationality: boolean;
   updateNationality: (params: NationalityData) => void;
@@ -45,32 +40,29 @@ export interface CustomerInvokeContextData {
   updateAccountDetails: (params: AccountDetailsData) => void;
   clearData: () => void;
   isCreatingApplication: boolean;
-  isGetApplicationList: boolean;
   isCreatedApplication: boolean;
   createApplication: (minIncome?: number, maxIncome?: number) => void;
-  getApplicationList: () => void;
   errorCreateApplication?: Error;
-  errorGetApplicationList?: Error;
   isUpdatedOtherDetails: boolean;
   isUpdatedAccountDetails: boolean;
   applicationDetails?: ApplicationDetails;
-  applicationList?: ApplicationListData;
 }
 
-export const onboardingDefaultValue: CustomerInvokeContextData = {
+export const onboardingDefaultValue: AccountOriginationContextData = {
   data: {},
-  setCustomerInvokeData: () => null,
+  setAccountOriginationData: () => null,
   isLoadingProfile: false,
+  isLoadingApplicationStatus:false,
   isUpdatingAddressDetails: false,
   isUpdatingMainDetails: false,
   isUpdatingNationality: false,
-  addMainDetails: () => null,
+  updateMainDetails: () => null,
   updateNationality: () => null,
   getUserProfile: () => null,
+  getApplicationStatus: () => null,
   updateAddressDetails: () => null,
   clearErrors: () => null,
   setUserProfile: () => null,
-  updateProfile: () => null,
   isUpdatedAddressDetails: false,
   isUpdatedMainDetails: false,
   isUpdatedNationality: false,
@@ -78,31 +70,30 @@ export const onboardingDefaultValue: CustomerInvokeContextData = {
   updateAccountDetails: () => null,
   clearData: () => null,
   createApplication: () => null,
-  getApplicationList: () => null,
   isCreatingApplication: false,
-  isGetApplicationList: false,
   isCreatedApplication: false,
   isUpdatedAccountDetails: false,
   isUpdatedOtherDetails: false
 };
 
-export const CustomerInvokeContext = React.createContext<
-  CustomerInvokeContextData
+export const AccountOriginationContext = React.createContext<
+  AccountOriginationContextData
 >(onboardingDefaultValue);
 
-export function useCustomerInvokeContextValue(): CustomerInvokeContextData {
-  const [_data, setData] = useState<CustomerInvokeData>({});
+export function useAccountOriginationContextValue(): AccountOriginationContextData {
+  const [_data, setData] = useState<AccountOriginationData>({});
 
   const [_profile, setProfile] = useState<Profile | undefined>(undefined);
+  const [_applicationStatus, setApplicationStatus] = useState<any | undefined>(undefined);
   const [_isLoadingProfile, setLoadingProfile] = useState(false);
+  const [_isLoadingApplicationStatus, setLoadingApplicationStatus] = useState(false);
   const [_errorLoadProfile, setErrorLoadProfile] = useState<Error | undefined>(
     undefined
   );
 
   const [_isUpdatingMainDetails, setUpdatingMainDetails] = useState(false);
   const [_isUpdatedMainDetails, setUpdatedMainDetails] = useState(false);
-  const [_validateUser, setValidateUser] = useState(false);
-  const [_errorAddMainDetails, setErrorAddMainDetails] = useState<
+  const [_errorUpdateMainDetails, setErrorUpdateMainDetails] = useState<
     Error | undefined
   >(undefined);
 
@@ -131,14 +122,6 @@ export function useCustomerInvokeContextValue(): CustomerInvokeContextData {
     ApplicationDetails | undefined
   >(undefined);
 
-  const [_isGetApplicationList, setGetApplicationList] = useState(false);
-  const [_applicationListData, setApplicationListData] = useState<
-    ApplicationListData[] | undefined
-  >(undefined);
-  const [_errorGetApplicationList, setErrorGetApplicationList] = useState<
-    Error | undefined
-  >(undefined);
-
   const getUserProfile = useCallback(async () => {
     try {
       setLoadingProfile(true);
@@ -155,11 +138,8 @@ export function useCustomerInvokeContextValue(): CustomerInvokeContextData {
     if (_errorLoadProfile) {
       setErrorLoadProfile(undefined);
     }
-    if (_errorAddMainDetails) {
-      setErrorAddMainDetails(undefined);
-    }
-    if (_validateUser) {
-      setValidateUser(false);
+    if (_errorUpdateMainDetails) {
+      setErrorUpdateMainDetails(undefined);
     }
     if (_errorUpdateAddressDetails) {
       setErrorUpdateAddressDetails(undefined);
@@ -167,24 +147,19 @@ export function useCustomerInvokeContextValue(): CustomerInvokeContextData {
     if (_errorCreateApplication) {
       setErrorCreateApplication(undefined);
     }
-    if (_errorGetApplicationList) {
-      setErrorGetApplicationList(undefined);
-    }
   }, [
     _errorLoadProfile,
-    _errorAddMainDetails,
-    _validateUser,
+    _errorUpdateMainDetails,
     _errorUpdateNationality,
     _errorUpdateAddressDetails,
-    _errorCreateApplication,
-    _errorGetApplicationList
+    _errorCreateApplication
   ]);
 
-  const addMainDetails = useCallback(
+  const updateMainDetails = useCallback(
     async (params: MainDetailsData) => {
       try {
         setUpdatingMainDetails(true);
-        const validateUserResponse = await onboardingService.addMainDetails({
+        await onboardingService.updateMainDetails(_profile?.userId!, {
           ...params,
           dateOfBirth: moment(params.dateOfBirth, "DD / MM / YYYY").format(
             "YYYY-MM-DD"
@@ -199,45 +174,18 @@ export function useCustomerInvokeContextValue(): CustomerInvokeContextData {
               ]
             : []
         });
-        if (validateUserResponse.exist === true) {
-          setValidateUser(true);
-        } else {
-          await onboardingService.updateMainDetails(_profile?.userId!, {
-            ...params,
-            dateOfBirth: moment(params.dateOfBirth, "DD / MM / YYYY").format(
-              "YYYY-MM-DD"
-            ),
-            listCustomFields: [
-              {
-                customKey: "SubProcessStep",
-                customValue: "Step1"
-              }
-            ],
-            contacts: params.email
-              ? [
-                  {
-                    contactType: "EMAIL",
-                    contactValue: params.email,
-                    isPrimary: true
-                  }
-                ]
-              : []
-          });
-
-          setValidateUser(false);
-          setData({
-            ..._data,
-            mainDetails: params
-          });
-          setUpdatedMainDetails(true);
-          setTimeout(() => {
-            setUpdatedMainDetails(false);
-          }, 50);
-          setUpdatingMainDetails(false);
-        }
+        setData({
+          ..._data,
+          mainDetails: params
+        });
+        setUpdatedMainDetails(true);
+        setTimeout(() => {
+          setUpdatedMainDetails(false);
+        }, 50);
+        setUpdatingMainDetails(false);
       } catch (error) {
         setUpdatingMainDetails(false);
-        setErrorAddMainDetails(error as Error);
+        setErrorUpdateMainDetails(error as Error);
       }
     },
     [_data, _profile]
@@ -249,15 +197,8 @@ export function useCustomerInvokeContextValue(): CustomerInvokeContextData {
         setUpdatingNationality(true);
         await onboardingService.updateNationalityDetails(_profile?.userId!, {
           ...params,
-          isCitizen: params.isCitizen === "yes",
-          listCustomFields: [
-            {
-              customKey: "SubProcessStep",
-              customValue: "Step2"
-            }
-          ]
+          isCitizen: params.isCitizen === "yes"
         });
-
         setData({
           ..._data,
           nationalityDetails: params
@@ -314,152 +255,12 @@ export function useCustomerInvokeContextValue(): CustomerInvokeContextData {
     setProfile(profile);
   }, []);
 
-  const updateProfile = useCallback((profile: any) => {
-    if (profile?.middleName) {
-      setData({
-        ..._data,
-        mainDetails: {
-          firstName: profile?.firstName,
-          middleName: profile?.middleName,
-          lastName: profile?.lastName,
-          dateOfBirth:
-            moment(profile?.dateOfBirth, "YYYY-MM-DD").format(
-              "DD / MM / YYYY"
-            ) ?? "",
-          maritalStatus: profile?.maritalStatus,
-          gender: profile?.gender,
-          email: profile?.contacts[0]?.contactValue
-        }
-      });
-    }
-
-    if (profile?.nationality) {
-      setData({
-        ..._data,
-        mainDetails: {
-          firstName: profile?.firstName,
-          middleName: profile?.middleName,
-          lastName: profile?.lastName,
-          dateOfBirth:
-            moment(profile?.dateOfBirth, "YYYY-MM-DD").format(
-              "DD / MM / YYYY"
-            ) ?? "",
-          maritalStatus: profile?.maritalStatus,
-          gender: profile?.gender,
-          email: profile?.contacts[0]?.contactValue
-        },
-        nationalityDetails: {
-          placeOfBirth: profile.placeOfBirth,
-          nationality: profile.nationality,
-          isCitizen: profile.isCitizen === false ? "no" : "yes"
-        }
-      });
-    }
-
-    if (profile?.addresses && profile?.addresses.length > 0) {
-      setData({
-        ..._data,
-        mainDetails: {
-          firstName: profile?.firstName,
-          middleName: profile?.middleName,
-          lastName: profile?.lastName,
-          dateOfBirth:
-            moment(profile?.dateOfBirth, "YYYY-MM-DD").format(
-              "DD / MM / YYYY"
-            ) ?? "",
-          maritalStatus: profile?.maritalStatus,
-          gender: profile?.gender,
-          email: profile?.contacts[0]?.contactValue
-        },
-        nationalityDetails: {
-          placeOfBirth: profile.placeOfBirth,
-          nationality: profile.nationality,
-          isCitizen: profile.isCitizen === false ? "no" : "yes"
-        },
-        addresses: [
-          {
-            addressType: 1, //profile?.addresses[profile?.addresses.length -1].addressType,
-            line1: profile?.addresses[profile?.addresses.length - 1].line1,
-            line2: profile?.addresses[profile?.addresses.length - 1].line2,
-            line3: profile?.addresses[profile?.addresses.length - 1].line3,
-            country: profile?.addresses[profile?.addresses.length - 1].country,
-            postcode:
-              profile?.addresses[profile?.addresses.length - 1].postcode,
-            province:
-              profile?.addresses[profile?.addresses.length - 1].province,
-            region: profile?.addresses[profile?.addresses.length - 1].region,
-            buildingName:
-              profile?.addresses[profile?.addresses.length - 1].buildingName,
-            city: profile?.addresses[profile?.addresses.length - 1].city
-          }
-        ]
-      });
-    }
-
-    if (profile?.employmentDetails && profile?.employmentDetails.length > 0) {
-      setData({
-        ..._data,
-        mainDetails: {
-          firstName: profile?.firstName,
-          middleName: profile?.middleName,
-          lastName: profile?.lastName,
-          dateOfBirth:
-            moment(profile?.dateOfBirth, "YYYY-MM-DD").format(
-              "DD / MM / YYYY"
-            ) ?? "",
-          maritalStatus: profile?.maritalStatus,
-          gender: profile?.gender,
-          email: profile?.contacts[0]?.contactValue
-        },
-        nationalityDetails: {
-          placeOfBirth: profile.placeOfBirth,
-          nationality: profile.nationality,
-          isCitizen: profile.isCitizen === false ? "no" : "yes"
-        },
-        addresses: [
-          {
-            addressType: 1, //profile?.addresses[profile?.addresses.length -1].addressType,
-            line1: profile?.addresses[profile?.addresses.length - 1].line1,
-            line2: profile?.addresses[profile?.addresses.length - 1].line2,
-            line3: profile?.addresses[profile?.addresses.length - 1].line3,
-            country: profile?.addresses[profile?.addresses.length - 1].country,
-            postcode:
-              profile?.addresses[profile?.addresses.length - 1].postcode,
-            province:
-              profile?.addresses[profile?.addresses.length - 1].province,
-            region: profile?.addresses[profile?.addresses.length - 1].region,
-            buildingName:
-              profile?.addresses[profile?.addresses.length - 1].buildingName,
-            city: profile?.addresses[profile?.addresses.length - 1].city
-          }
-        ],
-        otherDetails: {
-          status:
-            profile?.employmentDetails[profile?.employmentDetails.length - 1]
-              .status,
-          occupation:
-            profile?.employmentDetails[profile?.employmentDetails.length - 1]
-              .designation,
-          companyType:
-            profile?.employmentDetails[profile?.employmentDetails.length - 1]
-              .companyType,
-          companyName:
-            profile?.employmentDetails[profile?.employmentDetails.length - 1]
-              .companyName,
-          city:
-            profile?.employmentDetails[profile?.employmentDetails.length - 1]
-              .addresses[0].city,
-          postcode:
-            profile?.employmentDetails[profile?.employmentDetails.length - 1]
-              .addresses[0].postcode
-        }
-      });
-    }
-  }, []);
-
-  const setCustomerInvokeData = useCallback((data: CustomerInvokeData) => {
-    setCustomerInvokeData(data);
-  }, []);
+  const setAccountOriginationData = useCallback(
+    (data: AccountOriginationData) => {
+      setAccountOriginationData(data);
+    },
+    []
+  );
 
   const updateAccountDetails = useCallback(
     (params: AccountDetailsData) => {
@@ -476,52 +277,22 @@ export function useCustomerInvokeContextValue(): CustomerInvokeContextData {
   );
 
   const updateOtherDetails = useCallback(
-    async (params: OtherDetailsData) => {
-      try {
-        setUpdatedOtherDetails(true);
-
-        let employmentDetails = [
-          {
-            status: params?.status,
-            designation: params?.occupation,
-            companyType: params?.companyType,
-            companyName: params?.companyName,
-            addresses: [
-              {
-                addressType: "Residential",
-                city: params?.city,
-                postcode: params?.postcode
-              }
-            ]
-          }
-        ];
-        await onboardingService.updateEmploymentDetails(
-          _profile?.userId!,
-          employmentDetails
-        );
-
-        setData({
-          ..._data,
-          otherDetails: params
-        });
-        setUpdatedOtherDetails(true);
-        setTimeout(() => {
-          setUpdatedOtherDetails(false);
-        }, 50);
-      } catch (error) {
-        console.log("error ", error);
-
+    (params: OtherDetailsData) => {
+      setData({
+        ..._data,
+        otherDetails: params
+      });
+      setUpdatedOtherDetails(true);
+      setTimeout(() => {
         setUpdatedOtherDetails(false);
-        // setErrorUpdateAddressDetails(error as Error);
-      }
+      }, 50);
     },
-    [_data, _profile]
+    [_data]
   );
 
   const clearData = useCallback(() => {
     setData({});
     setApplicationDetails(undefined);
-    setApplicationListData(undefined);
   }, []);
 
   const createApplication = useCallback(
@@ -553,7 +324,7 @@ export function useCustomerInvokeContextValue(): CustomerInvokeContextData {
             contactDetails: _data.mainDetails.email
               ? [
                   {
-                    contactType: "EMAIL",
+                    contactType: "Email",
                     contactValue: _data.mainDetails?.email!
                   }
                 ]
@@ -572,15 +343,13 @@ export function useCustomerInvokeContextValue(): CustomerInvokeContextData {
                 county: "-"
               })) ?? []
           },
-          employmentDetails: [
-            {
-              status: _data.otherDetails.status ?? "",
-              companyName: _data.otherDetails.companyName ?? "",
-              companyType: _data.otherDetails.companyType ?? "",
-              addresses: [{ ..._data.otherDetails }],
-              designation: _data.otherDetails.occupation
-            }
-          ],
+          employmentDetails: {
+            status: _data.otherDetails.status ?? "",
+            companyName: _data.otherDetails.companyName ?? "",
+            companyType: _data.otherDetails.companyType ?? "",
+            addresses: [{ ..._data.otherDetails }],
+            designation: _data.otherDetails.occupation
+          },
           credit: {
             applicant: {
               individual: {
@@ -591,13 +360,7 @@ export function useCustomerInvokeContextValue(): CustomerInvokeContextData {
                 minMonthlyIncome: minIncome
               }
             }
-          },
-          customFields: [
-            {
-              customKey: "SubProcessStep",
-              customValue: "Step1"
-            }
-          ]
+          }
         });
         setApplicationDetails({
           applicationId: data.applicationId,
@@ -618,31 +381,31 @@ export function useCustomerInvokeContextValue(): CustomerInvokeContextData {
     [_data]
   );
 
-  const getApplicationList = useCallback(async () => {
+  const getApplicationStatus = useCallback(async (applicationId:string) => {
     try {
-      setGetApplicationList(true);
-      const { data } = await onboardingService.getApplicationList();
-      setApplicationListData(data);
-      setTimeout(() => {
-        setGetApplicationList(false);
-      }, 50);
+      setLoadingApplicationStatus(true);
+      const { data } = await onboardingService.getApplicationStatus(applicationId);
+      setApplicationStatus(data);
+      setLoadingApplicationStatus(false);
     } catch (error) {
-      setGetApplicationList(false);
-      setErrorGetApplicationList(error as Error);
+      setLoadingApplicationStatus(false);
+      setErrorLoadProfile(error as Error);
     }
   }, []);
 
   return useMemo(
     () => ({
       getUserProfile,
+      getApplicationStatus,
       clearErrors,
       profile: _profile,
+      applicationStatus:_applicationStatus,
       isLoadingProfile: _isLoadingProfile,
+      isLoadingApplicationStatus: _isLoadingApplicationStatus,
       errorLoadProfile: _errorLoadProfile,
-      addMainDetails,
+      updateMainDetails,
       isUpdatingMainDetails: _isUpdatingMainDetails,
-      errorAddMainDetails: _errorAddMainDetails,
-      isInValidateUser: _validateUser,
+      errorUpdateMainDetails: _errorUpdateMainDetails,
       updateNationality,
       isUpdatingNationality: _isUpdatingNationality,
       errorUpdateNationality: _errorUpdateNationality,
@@ -650,12 +413,10 @@ export function useCustomerInvokeContextValue(): CustomerInvokeContextData {
       isUpdatingAddressDetails: _isUpdatingAddressDetails,
       errorUpdateAddressDetails: _errorUpdateAddressDetails,
       setUserProfile,
-      updateProfile,
-      getApplicationList,
       isUpdatedAddressDetails: _isUpdatedAddressDetails,
       isUpdatedMainDetails: _isUpdatedMainDetails,
       isUpdatedNationality: _isUpdatedNationality,
-      setCustomerInvokeData,
+      setAccountOriginationData,
       data: _data,
       updateAccountDetails,
       updateOtherDetails,
@@ -663,34 +424,29 @@ export function useCustomerInvokeContextValue(): CustomerInvokeContextData {
       createApplication,
       isCreatedApplication: _isCreatedApplication,
       isCreatingApplication: _isCreatingApplication,
-      isGetApplicationList: _isGetApplicationList,
       errorCreateApplication: _errorCreateApplication,
-      errorGetApplicationList: _errorGetApplicationList,
       isUpdatedAccountDetails: _isUpdatedAccountDetails,
       isUpdatedOtherDetails: _isUpdatedOtherDetails,
-      applicationDetails: _applicationDetails,
-      applicationList: _applicationListData
+      applicationDetails: _applicationDetails
     }),
     [
       _applicationDetails,
-      _applicationListData,
       _data,
       _isUpdatedOtherDetails,
       _isUpdatedAccountDetails,
       _isCreatedApplication,
       _isCreatingApplication,
-      _isGetApplicationList,
       _errorCreateApplication,
-      _errorGetApplicationList,
       _isUpdatedNationality,
       _isUpdatedMainDetails,
       _isUpdatedAddressDetails,
       _profile,
+      _applicationStatus,
       _isLoadingProfile,
+      _isLoadingApplicationStatus,
       _errorLoadProfile,
       _isUpdatingMainDetails,
-      _errorAddMainDetails,
-      _validateUser,
+      _errorUpdateMainDetails,
       _isUpdatingNationality,
       _errorUpdateNationality,
       _isUpdatingAddressDetails,

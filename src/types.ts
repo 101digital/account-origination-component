@@ -1,7 +1,15 @@
-export interface InitCustomerInvokeData {
+import { AddressDetailsData } from "./components/address-detail-component/model";
+import { NationalityData } from "./components/nationality-component/model";
+import { MainDetailsData } from "./components/main-detail-component/model";
+import { OtherDetailsData } from "./components/other-details-component/model";
+import { AccountDetailsData } from "./components/account-details-component/model";
+
+export interface InitAccountOriginationData {
   firstName?: string;
   lastName?: string;
-  defaultStep?: string;
+  subStepNumber?: number;
+  mainStepNumber?: number;
+  applicationId?:string;
 }
 
 export interface CountryInformation {
@@ -122,6 +130,15 @@ export type StepData = {
   id: string;
   title: string;
   subTitle?: string;
+  progress: number;
+};
+
+export type AccountOriginationData = {
+  mainDetails?: MainDetailsData;
+  nationalityDetails?: NationalityData;
+  addresses?: AddressDetailsData[];
+  otherDetails?: OtherDetailsData;
+  accountDetails?: AccountDetailsData;
 };
 
 export interface Profile {
@@ -150,15 +167,6 @@ export interface AddressParams {
   postcode: string;
 }
 
-export interface EmploymentDetailParams {
-  status: string;
-  designation: string;
-  companyType: string;
-  companyName: string;
-  tradingSince: string;
-  addresses: { addressType: string; city: string; postcode: string }[];
-}
-
 export interface ApplicationDetailsParams {
   firstName: string;
   lastName: string;
@@ -172,10 +180,6 @@ export interface ApplicationDetailsParams {
   presentAsPermAddressFlag: boolean;
   contactDetails: { contactType: string; contactValue: string }[];
   addresses: AddressParams[];
-  listCustomFields: {
-    customKey: string;
-    customValue: string;
-  }[];
 }
 
 export interface EmploymentDetails {
@@ -205,30 +209,8 @@ export interface CreditIndividual {
 export interface CreateApplicationParams {
   submitType: string;
   applicantDetails: ApplicationDetailsParams;
-  employmentDetails: EmploymentDetails[];
+  employmentDetails: EmploymentDetails;
   credit: Credit;
-  customFields: {
-    customKey: string;
-    customValue: string;
-  }[];
-}
-
-export interface ValidateMainDetailParam {
-  firstName: string;
-  middleName: string;
-  lastName: string;
-  dateOfBirth: string;
-  maritalStatus: string;
-  gender: string;
-  contacts: {
-    contactType: string;
-    contactValue: string;
-    isPrimary: boolean;
-  }[];
-  listCustomFields: {
-    customKey: string;
-    customValue: string;
-  }[];
 }
 
 export interface MainDetailParam {
@@ -243,20 +225,12 @@ export interface MainDetailParam {
     contactValue: string;
     isPrimary: boolean;
   }[];
-  listCustomFields: {
-    customKey: string;
-    customValue: string;
-  }[];
 }
 
 export interface NationalityParam {
   placeOfBirth: string;
   nationality: string;
   isCitizen: boolean;
-  listCustomFields: {
-    customKey: string;
-    customValue: string;
-  }[];
 }
 
 export interface ApplicationDetails {
@@ -266,63 +240,21 @@ export interface ApplicationDetails {
   middleName: string;
 }
 
-export interface ApplicationListData {
-  applicationId: string;
-  userId: string;
-  status: string;
-  createdAt: string;
-  applicantDetails: {
-    firstName: string;
-    lastName: string;
-    middleName: string;
-    gender: string;
-    dateOfBirth: string;
-    placeOfBirth: string;
-    maritalStatus: string;
-    nationality: string;
-    citizenFlag: boolean;
-    presentAsPermAddressFlag: boolean;
-    contactDetails: {
-      id: string;
-      contactType: string;
-      contactValue: string;
-    }[];
-    addresses: AddressParams[];
-  };
-  employmentDetails: {
-    id: string;
-    companyName: string;
-    companyType: string;
-    designation: string;
-    status: string;
-    createdAt: string;
-    contactDetails: [];
-    addresses: {
-      id: string;
-      city: string;
-      postcode: string;
-    }[];
-  }[];
-  guarantors: [];
-  credit: {
-    applicant: {
-      individual: {
-        minMonthlyIncome: number;
-        maxMonthlyIncome: number;
-        sourceOfFund: string;
-        accountPurpose: string;
-        creditCards: {
-          numberOfCC: number;
-        };
-        loans: {
-          numberOfLoans: number;
-        };
-      };
-    };
-  };
-  customFields: {
-    id: string;
-    customKey: string;
-    customValue: string;
-  }[];
+export interface ValidateUserDetailsParam {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  dateOfBirth: string;
+}
+
+export interface UpdateKYCApplicantParam {
+  "kycDetails": {
+          "firstName": string;
+          "middleName":  string;
+          "lastName":  string;
+          "dateOfBirth":  string;
+          "idNumber":  string;
+          "idIssuingCountry": string;
+          "idExpiredDate":  string;
+      }
 }
