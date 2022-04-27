@@ -12,7 +12,7 @@ import {
 import { ApplicationDetails, StepData } from "./types";
 import useMergeStyles from "./styles";
 
-import { BackIcon, InfoIcon,ProcessingScreen } from "./assets/icons";
+import { BackIcon, InfoIcon, ProcessingScreen } from "./assets/icons";
 
 import { HeaderComponentStyles } from "./components/header-component";
 import { AccountOriginationContext } from "./context/onboarding-context";
@@ -23,9 +23,9 @@ import ComparisonVerificationComponent, {
   ComparisonVerificationComponentStyles
 } from "./components/comparison-verification-component";
 
-import EDDComponent from './components/edd-component';
-
-import Loader from './components/loader';
+import EDDComponent from "./components/edd-component";
+import VerificationProcessComponent from "./components/verification-process-component";
+import Loader from "./components/loader";
 
 import {
   CustomerInvokeComponent,
@@ -33,7 +33,7 @@ import {
   CustomerInvokeContext,
   CustomerInvokeService
 } from "customer-invoke-component";
-import { OnfidoComponent } from '@onfido-component';
+import { OnfidoComponent } from "@onfido-component";
 import { AuthContext } from "react-native-auth-component";
 
 export type AccountOriginationComponentProps = {
@@ -69,14 +69,12 @@ export const defaultAccountOriginationSteps: StepData[] = [
   {
     id: "verify-identity",
     title: "Verify your identity",
-    subTitle:
-      ""
+    subTitle: ""
   },
   {
     id: "processing-screen",
     title: "processing screen",
-    subTitle:
-      ""
+    subTitle: ""
   },
   {
     id: "comparison-verification",
@@ -108,25 +106,37 @@ const AccountOriginationComponent = (
   } = props;
   const _steps = steps ?? defaultAccountOriginationSteps;
   const styles: AccountOriginationComponentStyles = useMergeStyles(style);
-  const [step, setStep] = useState<StepData>(defaultAccountOriginationSteps[initData.mainStepNumber]);
+  const [step, setStep] = useState<StepData>(
+    defaultAccountOriginationSteps[initData.mainStepNumber]
+  );
   const [showErrorModel, setShowErrorModel] = useState<boolean>(false);
   const [applicationKycStatus, setApplicationKycStatus] = useState<any>();
   const { data, clearData, clearErrors, errorAddMainDetails } = useContext(
     AccountOriginationContext
   );
 
-  const { updateProfile, getApplicationList, applicationList, isGetApplicationList } =
-    useContext(CustomerInvokeContext);
+  const {
+    updateProfile,
+    getApplicationList,
+    applicationList,
+    isGetApplicationList
+  } = useContext(CustomerInvokeContext);
 
-  const { fetchProfile,profile, logout } = useContext(AuthContext);
+  const { fetchProfile, profile, logout } = useContext(AuthContext);
   const { i18n } = useContext(ThemeContext);
-  const { getApplicationStatus, applicationStatus,isInValidateUser,errorUpdateKYCApplicant,isUpdatedKYCApplicant } = useContext(AccountOriginationContext);
+  const {
+    getApplicationStatus,
+    applicationStatus,
+    isInValidateUser,
+    errorUpdateKYCApplicant,
+    isUpdatedKYCApplicant
+  } = useContext(AccountOriginationContext);
 
-  const windowWidth = Dimensions.get('window');
+  const windowWidth = Dimensions.get("window");
 
   useEffect(() => {
     if (initData.applicationId !== 0) {
-      getApplicationStatus(initData.applicationId)
+      getApplicationStatus(initData.applicationId);
       const verificationStatus = profile?.kycDetails?.verificationStatus;
 
       if (verificationStatus === undefined) {
@@ -135,17 +145,16 @@ const AccountOriginationComponent = (
           lastName: profile.lastName,
           applicationId: initData.applicationId
         };
-        onfidoInitiate(applicationData)
+        onfidoInitiate(applicationData);
       }
     }
-
   }, [initData.applicationId]);
-
 
   useEffect(() => {
     if (applicationList && applicationList.length > 0) {
       //get application Id
-      const applicationId = applicationList[applicationList.length - 1].applicationId;
+      const applicationId =
+        applicationList[applicationList.length - 1].applicationId;
 
       // get application status
       getApplicationStatus(applicationId);
@@ -159,31 +168,33 @@ const AccountOriginationComponent = (
 
       if (nextCustomerAction) {
         switch (nextCustomerAction.statusName) {
-          case 'KYC':
+          case "KYC":
             switch (nextCustomerAction.statusValue) {
-              case 'Pending':
+              case "Pending":
                 mainStepNumber = 1; //Onfido
                 break;
-              case 'Processing':
-              case 'Success':
+              case "Processing":
+              case "Success":
                 mainStepNumber = 2;
                 break;
-              case 'OCRConsider':
-              case  'OCRClear':
+              case "OCRConsider":
+              case "OCRClear":
                 mainStepNumber = 3;
                 break;
               default:
                 break;
             }
             break;
-          case 'EDD':
+          case "EDD":
             switch (nextCustomerAction.statusValue) {
-              case 'Pending':
+              case "Pending":
                 mainStepNumber = 4; //EDD
                 break;
-              case 'Processing':
-              case 'Success':
-                mainStepNumber = 2;
+              case "Processing":
+                onBack();
+                break;
+              case "Success":
+                onBack();
                 break;
               default:
                 break;
@@ -194,15 +205,14 @@ const AccountOriginationComponent = (
         }
       }
 
-      setApplicationKycStatus(nextCustomerAction)
+      setApplicationKycStatus(nextCustomerAction);
       setStep(_steps[mainStepNumber]);
-    }else if (applicationStatus && applicationStatus.status) {
-     if (applicationStatus.status === 'Processing') {
-       setStep(_steps[2]);
-     }
-   }
+    } else if (applicationStatus && applicationStatus.status) {
+      if (applicationStatus.status === "Processing") {
+        setStep(_steps[2]);
+      }
+    }
   }, [applicationStatus]);
-
 
   // useEffect(() => {
   //   if (applicationStatus) {
@@ -236,7 +246,6 @@ const AccountOriginationComponent = (
     };
   }, []);
 
-
   useEffect(() => {
     if (errorUpdateKYCApplicant) {
       showMessage({
@@ -249,10 +258,7 @@ const AccountOriginationComponent = (
       setShowErrorModel(true);
       clearErrors();
     }
-  }, [
-    errorUpdateKYCApplicant,
-    isInValidateUser
-  ]);
+  }, [errorUpdateKYCApplicant, isInValidateUser]);
 
   const validate = async (
     token: string,
@@ -263,7 +269,7 @@ const AccountOriginationComponent = (
       const result = await OnfidoComponent({ sdkToken: token });
 
       if (result === "UserCanceled") {
-          onBack();
+        onBack();
       } else {
         try {
           await customerInvokeService.checkOnfidoSdkToken(
@@ -283,14 +289,12 @@ const AccountOriginationComponent = (
         }
       }
     } catch (error) {
-      console.log('error ',error);
+      console.log("error ", error);
     }
-
   };
 
   const onfidoInitiate = async (applicationDetails: any) => {
     try {
-
       const response = await customerInvokeService.getOnfidoSdkToken(
         applicationDetails.applicationId,
         applicationDetails.firstName,
@@ -324,8 +328,8 @@ const AccountOriginationComponent = (
   };
 
   if (isUpdatedKYCApplicant) {
-    return <Loader/>
-  }else if (showErrorModel) {
+    return <Loader />;
+  } else if (showErrorModel) {
     return (
       <SafeAreaView style={styles.errorContainer}>
         <View style={styles.contentBox}>
@@ -357,96 +361,104 @@ const AccountOriginationComponent = (
   } else {
     return (
       <>
-      {step.id === "main-details"  && (
-        <>
-          <CustomerInvokeComponent
-            initData={{
-              firstName: `${profile?.firstName ?? ""}`,
-              lastName: `${profile?.lastName ?? ""}`
-            }}
-            onBack={() => onBack()}
-            onCompleted={applicationDetails => {
-              // fetchProfile()
-              // getApplicationList();
-
-              onfidoInitiate(applicationDetails);
-              // setStep(_steps[1])
-            }}
-            onLogin={() => {
-              //navigation.navigate(Route.LOGIN_SCREEN, {});
-              logout();
-            }}
-            initStep={
-              defaultCustomerInvokeSteps[initData.subStepNumber?initData.subStepNumber: 0]
-            }
-            style={{
-              headerComponentStyles: {
-                containerStyle: {
-                  marginBottom: 20
-                },
-                headerTitleTextStyle: {
-                  lineHeight: 36,
-                  color: "#5E0CBC",
-                  fontSize: 24
-                },
-                subTitleTextStyle: {
-                  fontSize: 14,
-                  lineHeight: 24,
-                  color: "#4E4B50",
-                  marginTop: 20
-                }
-              }
-            }}
-          />
-        </>
-      )}
-      {step.id ===  "processing-screen"&& <ProcessingScreen width={windowWidth.width}  height={windowWidth.height} />}
-      {step.id === "comparison-verification" && (
-        <SafeAreaView style={styles.container}>
-          <View style={styles.containerStyle}>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={()=>{onBack()}}
-              style={styles.backButtonContainerStyle}
-            >
-              {backIcon ?? <BackIcon width={17} height={12} />}
-            </TouchableOpacity>
-          <ComparisonVerificationComponent
-
+        {step.id === "main-details" && (
+          <>
+            <CustomerInvokeComponent
               initData={{
-                firstName: `${profile?.kycDetails?.altFirstName ?? ''}`,
-                lastName: `${profile?.kycDetails?.altLastName ?? ''}`,
-                middleName:`${profile?.kycDetails?.altMiddleName ?? ''}`,
-                dateOfBirth:`${profile?.kycDetails?.altDateOfBirth ?? ''}`,
-                idType:`${profile?.kycDetails?.altIdType ?? ''}`,
-                idIssuingCountry: "Singapore"}}
+                firstName: `${profile?.firstName ?? ""}`,
+                lastName: `${profile?.lastName ?? ""}`
+              }}
+              onBack={() => onBack()}
+              onCompleted={applicationDetails => {
+                // fetchProfile()
+                // getApplicationList();
 
-              status={applicationKycStatus?applicationKycStatus:undefined}
-              header={{
-                style: styles?.headerComponentStyles,
-                data: step
+                onfidoInitiate(applicationDetails);
+                // setStep(_steps[1])
               }}
-              applicationId={`${applicationStatus?.applicationId  ?? ''}`}
-              onContinue={() => {
-                setStep(_steps[2]);
+              onLogin={() => {
+                //navigation.navigate(Route.LOGIN_SCREEN, {});
+                logout();
               }}
-              style={styles?.mainDetailsComponentStyles}
+              initStep={
+                defaultCustomerInvokeSteps[
+                  initData.subStepNumber ? initData.subStepNumber : 0
+                ]
+              }
+              style={{
+                headerComponentStyles: {
+                  containerStyle: {
+                    marginBottom: 20
+                  },
+                  headerTitleTextStyle: {
+                    lineHeight: 36,
+                    color: "#5E0CBC",
+                    fontSize: 24
+                  },
+                  subTitleTextStyle: {
+                    fontSize: 14,
+                    lineHeight: 24,
+                    color: "#4E4B50",
+                    marginTop: 20
+                  }
+                }
+              }}
             />
-          </View>
-        </SafeAreaView>
-      )}
-      {step.id ===  "edd" && (<>
-        <SafeAreaView style={styles.container}>
-          <EDDComponent
-            onBack={()=>{onBack()}}
-            applicationId={`${applicationStatus?.applicationId  ?? ''}`}
-            onNext={() => {
-              // handle next step
-              setStep(_steps[2]);
-            }}
-          />
-        </SafeAreaView>
-      </>)}
+          </>
+        )}
+        {step.id === "processing-screen" && <VerificationProcessComponent />}
+        {step.id === "comparison-verification" && (
+          <SafeAreaView style={styles.container}>
+            <View style={styles.containerStyle}>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  onBack();
+                }}
+                style={styles.backButtonContainerStyle}
+              >
+                {backIcon ?? <BackIcon width={17} height={12} />}
+              </TouchableOpacity>
+              <ComparisonVerificationComponent
+                initData={{
+                  firstName: `${profile?.kycDetails?.altFirstName ?? ""}`,
+                  lastName: `${profile?.kycDetails?.altLastName ?? ""}`,
+                  middleName: `${profile?.kycDetails?.altMiddleName ?? ""}`,
+                  dateOfBirth: `${profile?.kycDetails?.altDateOfBirth ?? ""}`,
+                  idType: `${profile?.kycDetails?.altIdType ?? ""}`,
+                  idIssuingCountry: "Singapore"
+                }}
+                status={applicationKycStatus ? applicationKycStatus : undefined}
+                header={{
+                  style: styles?.headerComponentStyles,
+                  data: step
+                }}
+                applicationId={`${applicationStatus?.applicationId ?? ""}`}
+                onContinue={() => {
+                  setStep(_steps[2]);
+                }}
+                style={styles?.mainDetailsComponentStyles}
+              />
+            </View>
+          </SafeAreaView>
+        )}
+        {step.id === "edd" && (
+          <>
+            <SafeAreaView style={styles.container}>
+              <EDDComponent
+                onBack={() => {
+                  onBack();
+                }}
+                applicationId={`${applicationStatus?.applicationId ?? ""}`}
+                onNext={() => {
+                  // handle next step
+                  // setStep(_steps[2]);
+                  onBack();
+                }}
+              />
+            </SafeAreaView>
+          </>
+        )}
       </>
     );
   }
