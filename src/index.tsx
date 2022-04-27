@@ -5,7 +5,9 @@ import {
   TouchableOpacity,
   View,
   ViewStyle,
-  Text
+  Text,
+  Dimensions,
+  Platform
 } from "react-native";
 import { ApplicationDetails, StepData } from "./types";
 import useMergeStyles from "./styles";
@@ -23,6 +25,7 @@ import ComparisonVerificationComponent, {
 
 import EDDComponent from './components/edd-component';
 
+import Loader from './components/loader';
 
 import {
   CustomerInvokeComponent,
@@ -117,8 +120,9 @@ const AccountOriginationComponent = (
 
   const { fetchProfile,profile, logout } = useContext(AuthContext);
   const { i18n } = useContext(ThemeContext);
-  const { getApplicationStatus, applicationStatus } = useContext(AccountOriginationContext);
+  const { getApplicationStatus, applicationStatus,isInValidateUser,errorUpdateKYCApplicant,isUpdatedKYCApplicant } = useContext(AccountOriginationContext);
 
+  const windowWidth = Dimensions.get('window');
 
   useEffect(() => {
     if (initData.applicationId !== 0) {
@@ -173,7 +177,17 @@ const AccountOriginationComponent = (
             }
             break;
           case 'EDD':
-            mainStepNumber = 4;
+            switch (nextCustomerAction.statusValue) {
+              case 'Pending':
+                mainStepNumber = 4; //EDD
+                break;
+              case 'Processing':
+              case 'Success':
+                mainStepNumber = 2;
+                break;
+              default:
+                break;
+            }
             break;
           default:
             break;
@@ -222,6 +236,24 @@ const AccountOriginationComponent = (
     };
   }, []);
 
+
+  useEffect(() => {
+    if (errorUpdateKYCApplicant) {
+      showMessage({
+        message: "Errror while creating application details. Please try again",
+        backgroundColor: "#ff0000"
+      });
+      clearErrors();
+    }
+    if (isInValidateUser) {
+      setShowErrorModel(true);
+      clearErrors();
+    }
+  }, [
+    errorUpdateKYCApplicant,
+    isInValidateUser
+  ]);
+
   const validate = async (
     token: string,
     applicationDetails: any,
@@ -239,7 +271,8 @@ const AccountOriginationComponent = (
             requestId
           );
           fetchProfile();
-          setStep(_steps[3]);
+          getApplicationList();
+          setStep(_steps[2]);
         } catch (error) {
           console.log("error", error);
           showMessage({
@@ -290,9 +323,11 @@ const AccountOriginationComponent = (
     }
   };
 
-  if (showErrorModel) {
+  if (isUpdatedKYCApplicant) {
+    return <Loader/>
+  }else if (showErrorModel) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.errorContainer}>
         <View style={styles.contentBox}>
           <InfoIcon width={60} height={60} color={"#E06D6D"} />
           <Text style={styles.messageTitle}>
@@ -308,7 +343,6 @@ const AccountOriginationComponent = (
           onPress={() => {
             onLogin();
             setShowErrorModel(false);
-            // navigation.navigate(Route.USER_NAME_REGISTER_SCREEN, {});
           }}
           label="Proceed to login"
           style={{
@@ -366,7 +400,7 @@ const AccountOriginationComponent = (
           />
         </>
       )}
-      {step.id === "processing-screen" && <ProcessingScreen  />}
+      {step.id ===  "processing-screen"&& <ProcessingScreen width={windowWidth.width}  height={windowWidth.height} />}
       {step.id === "comparison-verification" && (
         <SafeAreaView style={styles.container}>
           <View style={styles.containerStyle}>
@@ -380,11 +414,11 @@ const AccountOriginationComponent = (
           <ComparisonVerificationComponent
 
               initData={{
-                firstName: `${profile?.firstName ?? ''}`,
-                lastName: `${profile?.lastName ?? ''}`,
-                middleName:`${profile?.middleName ?? ''}`,
-                dateOfBirth:`${profile?.dateOfBirth ?? ''}`,
-                idType:'passport',
+                firstName: `${profile?.kycDetails?.altFirstName ?? ''}`,
+                lastName: `${profile?.kycDetails?.altLastName ?? ''}`,
+                middleName:`${profile?.kycDetails?.altMiddleName ?? ''}`,
+                dateOfBirth:`${profile?.kycDetails?.altDateOfBirth ?? ''}`,
+                idType:`${profile?.kycDetails?.altIdType ?? ''}`,
                 idIssuingCountry: "Singapore"}}
 
               status={applicationKycStatus?applicationKycStatus:undefined}
@@ -401,18 +435,18 @@ const AccountOriginationComponent = (
           </View>
         </SafeAreaView>
       )}
-      {step.id === "edd" && (<><SafeAreaView style={styles.container}>
-        <EDDComponent
-          onBack={()=>{onBack()}}
-          applicationId={"877b4e86-2104-4881-8de2-b69c0c0d5501"}
-          onNext={() => {
-            // handle next step
-            setStep(_steps[2]);
-          }}
-        />
+      {step.id ===  "edd" && (<>
+        <SafeAreaView style={styles.container}>
+          <EDDComponent
+            onBack={()=>{onBack()}}
+            applicationId={`${applicationStatus?.applicationId  ?? ''}`}
+            onNext={() => {
+              // handle next step
+              setStep(_steps[2]);
+            }}
+          />
         </SafeAreaView>
       </>)}
-
       </>
     );
   }

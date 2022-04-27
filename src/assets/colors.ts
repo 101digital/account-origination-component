@@ -1,4 +1,4 @@
-export const onboardingColors = {
+export const colors = {
   primary: '#5E0CBC',
   secondary: '#14BDEB',
   button: '#FF9800',

@@ -155,7 +155,6 @@ export class AccountOriginationService {
     }
   };
 
-
   updateKYCApplicant = async (
     kycDetails: UpdateKYCApplicantParam,
     applicationId:string
@@ -170,7 +169,6 @@ export class AccountOriginationService {
       throw new Error("Onboaring Client is not registered");
     }
   };
-
 
   uploadDocument = async (
       content: string,
@@ -200,41 +198,41 @@ export class AccountOriginationService {
       }
     };
 
-    submitDocument = async (
-      documentId: string,
-      applicationId: string,
-      documentType: string,
-      documentCategory: string
-    ) => {
-      if (this._accountOriginationClient) {
-        const response = await this._accountOriginationClient.post(
-          `applications/${applicationId}/documents`,
-          {
-            documentName: documentType,
-            documentId,
-            documentCategory,
-          }
-        );
-        return response.data;
-      } else {
-        throw new Error('Account Origination Client is not registered');
-      }
-    };
+  submitDocument = async (
+    documentId: string,
+    applicationId: string,
+    documentType: string,
+    documentCategory: string
+  ) => {
+    if (this._accountOriginationClient) {
+      const response = await this._accountOriginationClient.post(
+        `applications/${applicationId}/documents`,
+        {
+          documentName: documentType,
+          documentId,
+          documentCategory,
+        }
+      );
+      return response.data;
+    } else {
+      throw new Error('Account Origination Client is not registered');
+    }
+  };
 
-    public getEBanks = async () => {
-      if (this._bankInformationClient) {
-        const response = await this._bankInformationClient.get('banks', {
-          params: {
-            pageSize: 1000,
-          },
-        });
-        return response.data;
-      } else {
-        throw new Error('Bank Information Client is not registered');
-      }
-    };
+  public getEBanks = async () => {
+    if (this._bankInformationClient) {
+      const response = await this._bankInformationClient.get('banks', {
+        params: {
+          pageSize: 1000,
+        },
+      });
+      return response.data;
+    } else {
+      throw new Error('Bank Information Client is not registered');
+    }
+  };
 
-    public updateBankCompany = async (
+  public updateBankCompany = async (
       applicationId: string,
       eBanks: string[],
       companyName: string
@@ -251,4 +249,26 @@ export class AccountOriginationService {
     };
 
 
+  public updateBank = async (applicationId: string, eBanks: string[]) => {
+    if (this._accountOriginationClient) {
+      const response = await this._accountOriginationClient.patch(`applications/${applicationId}`, {
+        bankRelationships: eBanks,
+      });
+      return response.data;
+    } else {
+      throw new Error('Account Origination Client is not registered');
+    }
+  };
+
+  public updateCompany = async (applicationId: string, company: string[]) => {
+      if (this._accountOriginationClient) {
+        const response = await this._accountOriginationClient.patch(`applications/${applicationId}`, {
+          submitType: 'EDDSubmit',
+          companyRelationships: company,
+        });
+        return response.data;
+      } else {
+        throw new Error('Account Origination Client is not registered');
+      }
+    };
 }

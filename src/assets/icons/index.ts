@@ -5,7 +5,9 @@ export * from './search.icon';
 export * from './clear.icon';
 export * from './information.icon';
 export * from './tick.icon';
+export * from "./info.icon";
 export * from './processing.screen';
+export * from './loader.icon';
 
 export * from './trash.icon';
 export * from './attach.icon';

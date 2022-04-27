@@ -17,6 +17,7 @@ export interface AccountOriginationContextData {
   isLoadingProfile: boolean;
   isLoadingApplicationStatus: boolean;
   isUpdateingKYCApplicant: boolean;
+  isInValidateUser?: boolean;
   profile?: Profile;
   errorLoadProfile?: Error;
   errorUpdateKYCApplicant?: Error;
@@ -26,6 +27,7 @@ export interface AccountOriginationContextData {
   setUserProfile: (profile: Profile) => void;
   isUpdatingMainDetails: boolean;
   isUpdatedMainDetails: boolean;
+  isUpdatedKYCApplicant: boolean;
   updateMainDetails: (params: MainDetailsData) => void;
   errorUpdateMainDetails?: Error;
   isUpdatingNationality: boolean;
@@ -103,6 +105,7 @@ export const onboardingDefaultValue: AccountOriginationContextData = {
   isUpdatedAddressDetails: false,
   isUpdatedMainDetails: false,
   isUpdatedNationality: false,
+  isUpdatedKYCApplicant:false,
   updateOtherDetails: () => null,
   updateAccountDetails: () => null,
   clearData: () => null,
@@ -129,12 +132,15 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
   const [_applicationStatus, setApplicationStatus] = useState<any | undefined>(undefined);
   const [_isLoadingProfile, setLoadingProfile] = useState(false);
   const [_isLoadingApplicationStatus, setLoadingApplicationStatus] = useState(false);
-  const [_isUpdateingKYCApplicant, setUpdateingKYCApplicant] = useState(false);
+
 
   const [_errorLoadProfile, setErrorLoadProfile] = useState<Error | undefined>(
     undefined
   );
 
+  const [_validateUser, setValidateUser] = useState(false);
+  const [_isUpdateingKYCApplicant, setUpdateingKYCApplicant] = useState(false);
+  const [_isUpdatedKYCApplicant, setUpdatedKYCApplicant] = useState(false);
   const [_errorUpdateKYCApplicant, setErrorUpdateKYCApplicant] = useState<Error | undefined>(
     undefined
   );
@@ -219,13 +225,18 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
       setErrorUpdateKYCApplicant(undefined);
     }
 
+    if (_validateUser) {
+      setValidateUser(false);
+    }
+
   }, [
     _errorLoadProfile,
     _errorUpdateMainDetails,
     _errorUpdateNationality,
     _errorUpdateAddressDetails,
     _errorCreateApplication,
-    _errorUpdateKYCApplicant
+    _errorUpdateKYCApplicant,
+    _validateUser,
   ]);
 
   const updateMainDetails = useCallback(
@@ -469,13 +480,27 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
   const updateKYCApplicant = useCallback(async (applicationId:string,kycDetails:UpdateKYCApplicantParam) => {
     try {
 
-
-      const { data } = await onboardingService.updateKYCApplicant(kycDetails,applicationId);
-      // setApplicationStatus(data);
       setUpdateingKYCApplicant(true);
-      setTimeout(() => {
-        setUpdateingKYCApplicant(false);
-      }, 50);
+      const validateUserResponse = await onboardingService.validateUserDetails({
+          firstName: kycDetails.kycDetails.firstName,
+          middleName: kycDetails.kycDetails.middleName,
+          lastName: kycDetails.kycDetails.lastName,
+          dateOfBirth: kycDetails.kycDetails.dateOfBirth
+        });
+      if (validateUserResponse.exist === true) {
+          setValidateUser(true);
+      } else {
+        await onboardingService.updateKYCApplicant(kycDetails,applicationId);
+          // setApplicationStatus(data);
+          setValidateUser(false);
+          setUpdatedKYCApplicant(true);
+          setTimeout(() => {
+            setUpdatedKYCApplicant(false);
+          }, 50);
+
+          setUpdateingKYCApplicant(false);
+      }
+
     } catch (error) {
       setUpdateingKYCApplicant(false);
       setErrorUpdateKYCApplicant(error as Error);
@@ -543,7 +568,8 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
   const submitBank = useCallback(async (applicationId: string, eBanks: string[]) => {
     try {
       setSubmitingBank(true);
-      await onboardingService.updateBankCompany(applicationId, eBanks, '');
+      // await onboardingService.updateBankCompany(applicationId, eBanks, '');
+      await onboardingService.updateBank(applicationId, eBanks);
       setSubmitedBank(true);
       setTimeout(() => {
         setSubmitedBank(false);
@@ -556,10 +582,11 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
   }, []);
 
   const submitCompany = useCallback(
-    async (applicationId: string, eBanks: string[], companyName: string) => {
+    async (applicationId: string, companyName: string) => {
       try {
         setSubmitingCompany(true);
-        await onboardingService.updateBankCompany(applicationId, eBanks, companyName);
+        // await onboardingService.updateBankCompany(applicationId, eBanks, companyName);
+        await onboardingService.updateCompany(applicationId, [companyName]);
         setSubmitedCompany(true);
         setTimeout(() => {
           setSubmitedCompany(false);
@@ -582,6 +609,7 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
       isSubmitingBank: _isSubmitingBank,
       isSubmitingCompany: _isSubmitingCompany,
       errorSubmitBankCompany: _errorSubmitBankCompany,
+      isInValidateUser: _validateUser,
       getEBank,
       isLoadingEBanks: _isLoadingEBank,
       errorLoadEBanks: _errorLoadEBank,
@@ -610,6 +638,7 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
       isUpdatedAddressDetails: _isUpdatedAddressDetails,
       isUpdatedMainDetails: _isUpdatedMainDetails,
       isUpdatedNationality: _isUpdatedNationality,
+      isUpdatedKYCApplicant: _isUpdatedKYCApplicant,
       setAccountOriginationData,
       data: _data,
       updateAccountDetails,
@@ -666,7 +695,9 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
       _isUpdatingNationality,
       _errorUpdateNationality,
       _isUpdatingAddressDetails,
-      _errorUpdateAddressDetails
+      _errorUpdateAddressDetails,
+      _isUpdatedKYCApplicant,
+      _validateUser,
     ]
   );
 }

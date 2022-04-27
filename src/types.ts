@@ -276,13 +276,13 @@ export interface DocumentFileData {
 }
 
 export interface UpdateKYCApplicantParam {
-  "kycDetails": {
-          "firstName": string;
-          "middleName":  string;
-          "lastName":  string;
-          "dateOfBirth":  string;
-          "idNumber":  string;
-          "idIssuingCountry": string;
-          "idExpiredDate":  string;
+  kycDetails: {
+          firstName: string;
+          middleName:  string;
+          lastName:  string;
+          dateOfBirth:  string;
+          idNumber:  string;
+          idIssuingCountry: string;
+          idExpiredDate:  string;
       }
 }

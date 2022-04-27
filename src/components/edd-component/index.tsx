@@ -72,8 +72,6 @@ const EDDComponent = ({ style, backIcon, onBack, applicationId, onNext }: EDDCom
     }
   };
 
-  console.log('step ',step);
-
   return (
     <View style={styles.containerStyle}>
       {step === EDDStep.ongoingVerification ? (
@@ -122,10 +120,9 @@ const EDDComponent = ({ style, backIcon, onBack, applicationId, onNext }: EDDCom
               style={styles.addBankComponentStyle}
             />
           )}
-          {step === EDDStep.addCompany && eBanksData && (
+          {step === EDDStep.addCompany && (
             <AddCompanyComponent
               applicationId={applicationId}
-              eBankData={eBanksData}
               onSaved={() => {
                 setStep(EDDStep.ongoingVerification);
               }}

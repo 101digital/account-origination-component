@@ -1,6 +1,6 @@
 import { defaultsDeep } from 'lodash';
 import { useContext } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform, StatusBar } from 'react-native';
 import { ThemeContext } from 'react-native-theme-component';
 import { SelectEBankComponentStyles } from '.';
 
@@ -18,6 +18,7 @@ const useMergeStyles = (style?: SelectEBankComponentStyles): SelectEBankComponen
       padding: 15,
       marginLeft: 12,
       marginBottom: 8,
+      marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
     contentContainerStyle: {
       flex: 1,

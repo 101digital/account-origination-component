@@ -64,16 +64,16 @@ const ComparisonVerificationComponent = ({
   const [isAcceptCondition, setAcceptCondition] = useState(false);
   const [isOCRClear, setOCRClear] = useState(false);
 
-  const { getApplicationStatus, applicationStatus,updateKYCApplicant,isUpdateingKYCApplicant } = useContext(AccountOriginationContext);
+  const {  updateKYCApplicant,isUpdateingKYCApplicant,isUpdatedKYCApplicant } = useContext(AccountOriginationContext);
 
 
   const formikRef: any = useRef(null);
 
   useEffect(() => {
-    if (isUpdateingKYCApplicant) {
+    if (isUpdatedKYCApplicant) {
       onContinue();
     }
-  }, [isUpdateingKYCApplicant]);
+  }, [isUpdatedKYCApplicant]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -86,10 +86,18 @@ const ComparisonVerificationComponent = ({
       if (status.statusValue !== "OCRConsider") {
         setOCRClear(true)
       }
-
     }
 
   }, [status]);
+
+  useEffect(() => {
+    if (initData) {
+      formikRef?.current.setFieldValue(
+        "dateOfBirth",
+        moment(initData.dateOfBirth).format("DD / MM / YYYY")
+      );
+    }
+  }, [initData]);
 
   return (
     <>

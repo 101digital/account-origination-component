@@ -6,7 +6,6 @@ import { Button, InputField, KeyboardSpace, ThemeContext } from 'react-native-th
 import { CompanyData, CompanyDataSchema } from './model';
 import useMergeStyles from './styles';
 import { AccountOriginationContext } from '../../../../context/onboarding-context';
-import { EBankData } from '../add-bank-component/model';
 import ErrorMessageModal, {
   ErrorMessageModalStyles,
 } from '../../../sub-components/error-message-modal';
@@ -14,7 +13,6 @@ import ErrorMessageModal, {
 export type AddCompanyComponentProps = {
   initValue?: string;
   applicationId: string;
-  eBankData: EBankData[];
   style?: AddCompanyComponentStyles;
   onSaved: () => void;
 };
@@ -30,12 +28,7 @@ export type AddCompanyComponentStyles = {
   errorMessageModalStyle?: ErrorMessageModalStyles;
 };
 
-const AddCompanyComponent = ({
-  style,
-  applicationId,
-  eBankData,
-  onSaved,
-}: AddCompanyComponentProps) => {
+const AddCompanyComponent = ({ style, applicationId, onSaved }: AddCompanyComponentProps) => {
   const styles: AddCompanyComponentStyles = useMergeStyles(style);
   const formikRef: any = useRef(null);
   const { i18n, colors } = useContext(ThemeContext);
@@ -67,11 +60,7 @@ const AddCompanyComponent = ({
         initialValues={CompanyData.empty()}
         validationSchema={CompanyDataSchema()}
         onSubmit={(values) => {
-          submitCompany(
-            applicationId,
-            eBankData.map((eb) => eb.name),
-            values.name
-          );
+          submitCompany(applicationId, values.name);
         }}
       >
         {({ isValid, submitForm, values }) => {

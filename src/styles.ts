@@ -41,6 +41,37 @@ const useMergeStyles = (
           marginTop: 20,
         },
       },
+
+    errorContainer: {
+      flex: 1,
+      backgroundColor: "#5E0CBC"
+    },
+    contentBox: {
+      flex: 1,
+      justifyContent: "center",
+      alignSelf: "center",
+      alignItems: "center",
+      marginBottom: 50,
+      width: 330
+    },
+    messageTitle: {
+      fontSize: 24,
+      lineHeight: 36,
+      fontWeight: "700",
+      textAlign: "center",
+      // fontFamily: fonts.medium,
+      color: "#E06D6D",
+      paddingTop: 50
+    },
+    messageDescription: {
+      fontSize: 16,
+      lineHeight: 24,
+      fontWeight: "700",
+      textAlign: "center",
+      // fontFamily: fonts.medium,
+      color: "#fff",
+      paddingTop: 16
+    }
   });
 
   return defaultsDeep(style, defaultStyles);
