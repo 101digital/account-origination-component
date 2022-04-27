@@ -247,6 +247,34 @@ export interface ValidateUserDetailsParam {
   dateOfBirth: string;
 }
 
+export interface EBank {
+  id: string;
+  name: string;
+  createdAt: string;
+  paymentProviders: PaymentProvider[];
+}
+
+export interface PaymentProvider {
+  name: string;
+  code: string;
+  description: string;
+  isActive: boolean;
+  isDefault: boolean;
+}
+
+export type GroupEBank = {
+  section: string;
+  items: EBank[];
+};
+
+export interface DocumentFileData {
+  id?: string;
+  size: number;
+  type: string;
+  data: string;
+  name: string;
+}
+
 export interface UpdateKYCApplicantParam {
   "kycDetails": {
           "firstName": string;

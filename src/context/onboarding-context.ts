@@ -6,7 +6,8 @@ import { AddressDetailsData } from "../components/address-detail-component/model
 import { MainDetailsData } from "../components/main-detail-component/model";
 import { NationalityData } from "../components/nationality-component/model";
 import { AccountOriginationService } from "../service/onboarding-service";
-import { AccountOriginationData, Profile, ApplicationDetails } from "../types";
+import { AccountOriginationData, Profile, ApplicationDetails,UpdateKYCApplicantParam,EBank } from "../types";
+const banksData = require('../assets/data/banks.json');
 
 const onboardingService = AccountOriginationService.instance();
 
@@ -15,10 +16,13 @@ export interface AccountOriginationContextData {
   setAccountOriginationData: (data: AccountOriginationData) => void;
   isLoadingProfile: boolean;
   isLoadingApplicationStatus: boolean;
+  isUpdateingKYCApplicant: boolean;
   profile?: Profile;
   errorLoadProfile?: Error;
+  errorUpdateKYCApplicant?: Error;
   getUserProfile: () => void;
   getApplicationStatus: (applicationId:string) => void;
+  updateKYCApplicant:(applicationId:string,kycDetails:UpdateKYCApplicantParam) => void;
   setUserProfile: (profile: Profile) => void;
   isUpdatingMainDetails: boolean;
   isUpdatedMainDetails: boolean;
@@ -46,13 +50,45 @@ export interface AccountOriginationContextData {
   isUpdatedOtherDetails: boolean;
   isUpdatedAccountDetails: boolean;
   applicationDetails?: ApplicationDetails;
+  uploadDocumentPercent: number;
+  uploadDocument: (
+    content: string,
+    documentType: string,
+    contentType: string
+  ) => Promise<string | undefined>;
+  errorUploadDocument?: Error;
+  submitDocument: (documentId: string, applicationId: string, documentType: string) => void;
+  isSubmitingDocument: boolean;
+  errorSubmitDocument?: Error;
+  isSubmitedDocument: boolean;
+  isLoadingEBanks: boolean;
+  getEBank: () => void;
+  eBanks: EBank[];
+  errorLoadEBanks?: Error;
+  isSubmitingBank: boolean;
+  isSubmitingCompany: boolean;
+  submitBank: (applicationId: string, eBanks: string[]) => void;
+  submitCompany: (applicationId: string, eBanks: string[], company: string) => void;
+  isSubmitedBank: boolean;
+  isSubmitedCompany: boolean;
+  errorSubmitBankCompany?: Error;
 }
 
 export const onboardingDefaultValue: AccountOriginationContextData = {
+  isSubmitedBank: false,
+  isSubmitedCompany: false,
+  isSubmitingBank: false,
+  isSubmitingCompany: false,
+  submitBank: () => null,
+  submitCompany: () => null,
+  isLoadingEBanks: false,
+  getEBank: () => null,
+  eBanks: [],
   data: {},
   setAccountOriginationData: () => null,
   isLoadingProfile: false,
   isLoadingApplicationStatus:false,
+  isUpdateingKYCApplicant:false,
   isUpdatingAddressDetails: false,
   isUpdatingMainDetails: false,
   isUpdatingNationality: false,
@@ -60,6 +96,7 @@ export const onboardingDefaultValue: AccountOriginationContextData = {
   updateNationality: () => null,
   getUserProfile: () => null,
   getApplicationStatus: () => null,
+  updateKYCApplicant:() => null,
   updateAddressDetails: () => null,
   clearErrors: () => null,
   setUserProfile: () => null,
@@ -73,7 +110,12 @@ export const onboardingDefaultValue: AccountOriginationContextData = {
   isCreatingApplication: false,
   isCreatedApplication: false,
   isUpdatedAccountDetails: false,
-  isUpdatedOtherDetails: false
+  isUpdatedOtherDetails: false,
+  uploadDocumentPercent: 0,
+  uploadDocument: async () => undefined,
+  submitDocument: () => null,
+  isSubmitingDocument: false,
+  isSubmitedDocument: false,
 };
 
 export const AccountOriginationContext = React.createContext<
@@ -87,7 +129,13 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
   const [_applicationStatus, setApplicationStatus] = useState<any | undefined>(undefined);
   const [_isLoadingProfile, setLoadingProfile] = useState(false);
   const [_isLoadingApplicationStatus, setLoadingApplicationStatus] = useState(false);
+  const [_isUpdateingKYCApplicant, setUpdateingKYCApplicant] = useState(false);
+
   const [_errorLoadProfile, setErrorLoadProfile] = useState<Error | undefined>(
+    undefined
+  );
+
+  const [_errorUpdateKYCApplicant, setErrorUpdateKYCApplicant] = useState<Error | undefined>(
     undefined
   );
 
@@ -116,11 +164,30 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
   const [_errorCreateApplication, setErrorCreateApplication] = useState<
     Error | undefined
   >(undefined);
+
   const [_isUpdatedOtherDetails, setUpdatedOtherDetails] = useState(false);
   const [_isUpdatedAccountDetails, setUpdatedAccountDetails] = useState(false);
   const [_applicationDetails, setApplicationDetails] = useState<
     ApplicationDetails | undefined
   >(undefined);
+
+  const [_errorUploadDocument, setErrorUploadDocument] = useState<Error | undefined>(undefined);
+  const [_uploadDocumentPercent, setUploadDocumentPercent] = useState<number>(0);
+
+  const [_isSubmitingDocument, setSubmitingDocument] = useState(false);
+  const [_isSubmitedDocument, setSubmitedDocument] = useState(false);
+  const [_errorSubmitDocument, setErrorSubmitDocument] = useState<Error | undefined>(undefined);
+
+  const [_eBanks, setEBanks] = useState<EBank[]>([]);
+  const [_isLoadingEBank, setLoadingEBank] = useState(false);
+  const [_errorLoadEBank, setErrorLoadEBank] = useState<Error | undefined>(undefined);
+
+  const [_isSubmitingCompany, setSubmitingCompany] = useState(false);
+  const [_isSubmitingBank, setSubmitingBank] = useState(false);
+  const [_isSubmitedBank, setSubmitedBank] = useState(false);
+  const [_isSubmitedCompany, setSubmitedCompany] = useState(false);
+  const [_errorSubmitBankCompany, setErrorSubmitBankCompany] = useState<Error | undefined>(
+    undefined)
 
   const getUserProfile = useCallback(async () => {
     try {
@@ -147,12 +214,18 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
     if (_errorCreateApplication) {
       setErrorCreateApplication(undefined);
     }
+
+    if (_errorUpdateKYCApplicant) {
+      setErrorUpdateKYCApplicant(undefined);
+    }
+
   }, [
     _errorLoadProfile,
     _errorUpdateMainDetails,
     _errorUpdateNationality,
     _errorUpdateAddressDetails,
-    _errorCreateApplication
+    _errorCreateApplication,
+    _errorUpdateKYCApplicant
   ]);
 
   const updateMainDetails = useCallback(
@@ -393,16 +466,137 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
     }
   }, []);
 
+  const updateKYCApplicant = useCallback(async (applicationId:string,kycDetails:UpdateKYCApplicantParam) => {
+    try {
+
+
+      const { data } = await onboardingService.updateKYCApplicant(kycDetails,applicationId);
+      // setApplicationStatus(data);
+      setUpdateingKYCApplicant(true);
+      setTimeout(() => {
+        setUpdateingKYCApplicant(false);
+      }, 50);
+    } catch (error) {
+      setUpdateingKYCApplicant(false);
+      setErrorUpdateKYCApplicant(error as Error);
+    }
+  }, []);
+
+
+  const uploadDocument = useCallback(
+    async (content: string, documentType: string, contentType: string) => {
+      try {
+        setUploadDocumentPercent(1);
+        const { data } = await onboardingService.uploadDocument(
+          content,
+          documentType,
+          'EDD',
+          contentType,
+          (progressEvent) => {
+            let percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadDocumentPercent(percentCompleted);
+          }
+        );
+        setUploadDocumentPercent(0);
+        return data.id;
+      } catch (error) {
+        setUploadDocumentPercent(0);
+        setErrorUploadDocument(error as Error);
+      }
+      return undefined;
+    },
+    []
+  );
+
+  const submitDocument = useCallback(
+    async (documentId: string, applicationId: string, documentType: string) => {
+      try {
+        setSubmitingDocument(true);
+        await onboardingService.submitDocument(documentId, applicationId, documentType, 'EDD');
+        setSubmitedDocument(true);
+        setTimeout(() => {
+          setSubmitedDocument(false);
+        }, 50);
+        setSubmitingDocument(false);
+      } catch (error) {
+        setSubmitingDocument(false);
+        setErrorSubmitDocument(error as Error);
+      }
+    },
+    []
+  );
+
+  const getEBank = useCallback(async () => {
+    try {
+      setLoadingEBank(true);
+      const { data } = await onboardingService.getEBanks();
+      setEBanks(data);
+      setLoadingEBank(false);
+    } catch (error) {
+      setLoadingEBank(false);
+      const banks: EBank[] = JSON.parse(JSON.stringify(banksData));
+      setEBanks(banks);
+      // setErrorLoadEBank(error as Error);
+    }
+  }, []);
+
+  const submitBank = useCallback(async (applicationId: string, eBanks: string[]) => {
+    try {
+      setSubmitingBank(true);
+      await onboardingService.updateBankCompany(applicationId, eBanks, '');
+      setSubmitedBank(true);
+      setTimeout(() => {
+        setSubmitedBank(false);
+      }, 50);
+      setSubmitingBank(false);
+    } catch (error) {
+      setSubmitingBank(false);
+      setErrorSubmitBankCompany(error as Error);
+    }
+  }, []);
+
+  const submitCompany = useCallback(
+    async (applicationId: string, eBanks: string[], companyName: string) => {
+      try {
+        setSubmitingCompany(true);
+        await onboardingService.updateBankCompany(applicationId, eBanks, companyName);
+        setSubmitedCompany(true);
+        setTimeout(() => {
+          setSubmitedCompany(false);
+        }, 50);
+        setSubmitingCompany(false);
+      } catch (error) {
+        setSubmitingCompany(false);
+        setErrorSubmitBankCompany(error as Error);
+      }
+    },
+    []
+  );
+
   return useMemo(
     () => ({
+      submitBank,
+      submitCompany,
+      isSubmitedBank: _isSubmitedBank,
+      isSubmitedCompany: _isSubmitedCompany,
+      isSubmitingBank: _isSubmitingBank,
+      isSubmitingCompany: _isSubmitingCompany,
+      errorSubmitBankCompany: _errorSubmitBankCompany,
+      getEBank,
+      isLoadingEBanks: _isLoadingEBank,
+      errorLoadEBanks: _errorLoadEBank,
+      eBanks: _eBanks,
       getUserProfile,
       getApplicationStatus,
+      updateKYCApplicant,
       clearErrors,
       profile: _profile,
       applicationStatus:_applicationStatus,
       isLoadingProfile: _isLoadingProfile,
       isLoadingApplicationStatus: _isLoadingApplicationStatus,
+      isUpdateingKYCApplicant: _isUpdateingKYCApplicant,
       errorLoadProfile: _errorLoadProfile,
+      errorUpdateKYCApplicant: _errorUpdateKYCApplicant,
       updateMainDetails,
       isUpdatingMainDetails: _isUpdatingMainDetails,
       errorUpdateMainDetails: _errorUpdateMainDetails,
@@ -427,9 +621,29 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
       errorCreateApplication: _errorCreateApplication,
       isUpdatedAccountDetails: _isUpdatedAccountDetails,
       isUpdatedOtherDetails: _isUpdatedOtherDetails,
-      applicationDetails: _applicationDetails
+      applicationDetails: _applicationDetails,
+      uploadDocument,
+      uploadDocumentPercent: _uploadDocumentPercent,
+      errorUploadDocument: _errorUploadDocument,
+      submitDocument,
+      isSubmitingDocument: _isSubmitingDocument,
+      isSubmitedDocument: _isSubmitedDocument,
+      errorSubmitDocument: _errorSubmitDocument,
     }),
     [
+      _isSubmitedBank,
+      _isSubmitedCompany,
+      _isSubmitingBank,
+      _isSubmitingCompany,
+      _errorSubmitBankCompany,
+      _isLoadingEBank,
+      _errorLoadEBank,
+      _eBanks,
+      _isSubmitingDocument,
+      _isSubmitedDocument,
+      _errorSubmitDocument,
+      _errorUploadDocument,
+      _uploadDocumentPercent,
       _applicationDetails,
       _data,
       _isUpdatedOtherDetails,
@@ -444,7 +658,9 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
       _applicationStatus,
       _isLoadingProfile,
       _isLoadingApplicationStatus,
+      _isUpdateingKYCApplicant,
       _errorLoadProfile,
+      _errorUpdateKYCApplicant,
       _isUpdatingMainDetails,
       _errorUpdateMainDetails,
       _isUpdatingNationality,

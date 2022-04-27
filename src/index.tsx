@@ -10,7 +10,7 @@ import {
 import { ApplicationDetails, StepData } from "./types";
 import useMergeStyles from "./styles";
 
-import { BackIcon, InfoIcon } from "./assets/icons";
+import { BackIcon, InfoIcon,ProcessingScreen } from "./assets/icons";
 
 import { HeaderComponentStyles } from "./components/header-component";
 import { AccountOriginationContext } from "./context/onboarding-context";
@@ -20,6 +20,9 @@ import { Button, ThemeContext } from "react-native-theme-component";
 import ComparisonVerificationComponent, {
   ComparisonVerificationComponentStyles
 } from "./components/comparison-verification-component";
+
+import EDDComponent from './components/edd-component';
+
 
 import {
   CustomerInvokeComponent,
@@ -105,7 +108,7 @@ const AccountOriginationComponent = (
   const [step, setStep] = useState<StepData>(defaultAccountOriginationSteps[initData.mainStepNumber]);
   const [showErrorModel, setShowErrorModel] = useState<boolean>(false);
   const [applicationKycStatus, setApplicationKycStatus] = useState<any>();
-  const { data, clearData, clearErrors, errorAddMainDetails  } = useContext(
+  const { data, clearData, clearErrors, errorAddMainDetails } = useContext(
     AccountOriginationContext
   );
 
@@ -179,7 +182,11 @@ const AccountOriginationComponent = (
 
       setApplicationKycStatus(nextCustomerAction)
       setStep(_steps[mainStepNumber]);
-    }
+    }else if (applicationStatus && applicationStatus.status) {
+     if (applicationStatus.status === 'Processing') {
+       setStep(_steps[2]);
+     }
+   }
   }, [applicationStatus]);
 
 
@@ -359,6 +366,7 @@ const AccountOriginationComponent = (
           />
         </>
       )}
+      {step.id === "processing-screen" && <ProcessingScreen  />}
       {step.id === "comparison-verification" && (
         <SafeAreaView style={styles.container}>
           <View style={styles.containerStyle}>
@@ -375,20 +383,36 @@ const AccountOriginationComponent = (
                 firstName: `${profile?.firstName ?? ''}`,
                 lastName: `${profile?.lastName ?? ''}`,
                 middleName:`${profile?.middleName ?? ''}`,
-                dateOfBirth:`${profile?.dateOfBirth ?? ''}`}}
+                dateOfBirth:`${profile?.dateOfBirth ?? ''}`,
+                idType:'passport',
+                idIssuingCountry: "Singapore"}}
+
               status={applicationKycStatus?applicationKycStatus:undefined}
               header={{
                 style: styles?.headerComponentStyles,
                 data: step
               }}
+              applicationId={`${applicationStatus?.applicationId  ?? ''}`}
               onContinue={() => {
-                setStep(_steps[1]);
+                setStep(_steps[2]);
               }}
               style={styles?.mainDetailsComponentStyles}
             />
           </View>
         </SafeAreaView>
       )}
+      {step.id === "edd" && (<><SafeAreaView style={styles.container}>
+        <EDDComponent
+          onBack={()=>{onBack()}}
+          applicationId={"877b4e86-2104-4881-8de2-b69c0c0d5501"}
+          onNext={() => {
+            // handle next step
+            setStep(_steps[2]);
+          }}
+        />
+        </SafeAreaView>
+      </>)}
+
       </>
     );
   }

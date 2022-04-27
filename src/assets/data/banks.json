@@ -1,0 +1,26 @@
+[
+  {
+    "id": "mockup-1",
+    "name": "Binangonan Rural Bank",
+    "createdAt": "2022-04-26T04:00:53.972",
+    "paymentProviders": []
+  },
+  {
+    "id": "mockup-2",
+    "name": "Country Builders Bank",
+    "createdAt": "2022-04-26T04:00:53.972",
+    "paymentProviders": []
+  },
+  {
+    "id": "mockup-3",
+    "name": "Philippine National Bank",
+    "createdAt": "2022-04-26T04:00:53.972",
+    "paymentProviders": []
+  },
+  {
+    "id": "mockup-4",
+    "name": "UnionBank",
+    "createdAt": "2022-04-26T04:00:53.972",
+    "paymentProviders": []
+  }
+]

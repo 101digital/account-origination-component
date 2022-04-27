@@ -27,7 +27,7 @@ import { ArrowDownIcon, CalendarIcon, InfoIcon } from "../../assets/icons";
 import moment from "moment";
 
 import KeyboardSpace from "../sub-components/keyboard-space";
-import { CustomerInvokeContext } from "../../context/onboarding-context";
+import { AccountOriginationContext } from "../../context/onboarding-context";
 
 export type ComparisonVerificationComponentProps = {
   initData?: ComparisonVerificationData;
@@ -35,6 +35,7 @@ export type ComparisonVerificationComponentProps = {
   onContinue: () => void;
   style?: ComparisonVerificationComponentStyles;
   status?:any;
+  applicationId?:any;
 };
 
 export type ComparisonVerificationComponentStyles = {
@@ -51,7 +52,8 @@ const ComparisonVerificationComponent = ({
   header,
   onContinue,
   initData,
-  status
+  status,
+  applicationId
 }: ComparisonVerificationComponentProps) => {
   const styles: ComparisonVerificationComponentStyles = useMergeStyles(style);
   const { colors, i18n } = useContext(ThemeContext);
@@ -62,20 +64,17 @@ const ComparisonVerificationComponent = ({
   const [isAcceptCondition, setAcceptCondition] = useState(false);
   const [isOCRClear, setOCRClear] = useState(false);
 
-  // const {
-  //   addMainDetails,
-  //   isUpdatingMainDetails,
-  //   isUpdatedMainDetails
-  // } = useContext(CustomerInvokeContext);
+  const { getApplicationStatus, applicationStatus,updateKYCApplicant,isUpdateingKYCApplicant } = useContext(AccountOriginationContext);
+
 
   const formikRef: any = useRef(null);
 
-  // useEffect(() => {
-  //   if (isUpdatedMainDetails) {
-  //     onContinue();
-  //   }
-  // }, [isUpdatedMainDetails]);
-  //
+  useEffect(() => {
+    if (isUpdateingKYCApplicant) {
+      onContinue();
+    }
+  }, [isUpdateingKYCApplicant]);
+
   useEffect(() => {
     setTimeout(() => {
       formikRef?.current?.validateForm();
@@ -102,7 +101,18 @@ const ComparisonVerificationComponent = ({
           ComparisonVerificationData.empty(initData.firstName, initData.middleName, initData.lastName,initData.dateOfBirth)
         }
         validationSchema={ComparisonVerificationSchema()}
-        onSubmit={()=>{
+        onSubmit={(data:any)=>{
+          let kycDetails={kycDetails:data}
+          kycDetails.kycDetails.dateOfBirth= moment(data.dateOfBirth, "DD / MM / YYYY").format(
+              "YYYY-MM-DD"
+            );
+
+          kycDetails.kycDetails.dateOfExpiry= moment(data.dateOfExpiry, "DD / MM / YYYY").format(
+              "YYYY-MM-DD"
+            );
+          if (applicationId) {
+              updateKYCApplicant(applicationId,kycDetails)
+          }
 
         }}
       >
@@ -298,7 +308,7 @@ const ComparisonVerificationComponent = ({
                   i18n?.t("customer_invoke_component.lbl_continue") ??
                   "Continue"
                 }
-                // isLoading={isUpdatingMainDetails}
+                isLoading={isUpdateingKYCApplicant}
                 disabled={!isValid || !isAcceptCondition}
                 disableColor={colors.secondaryButtonColor}
               />
