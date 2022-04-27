@@ -12,7 +12,7 @@ import {
 import { ApplicationDetails, StepData } from "./types";
 import useMergeStyles from "./styles";
 
-import { BackIcon, InfoIcon, ProcessingScreen } from "./assets/icons";
+import { BackIcon, InfoIcon } from "./assets/icons";
 
 import { HeaderComponentStyles } from "./components/header-component";
 import { AccountOriginationContext } from "./context/onboarding-context";
