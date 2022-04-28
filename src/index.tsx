@@ -140,8 +140,6 @@ const AccountOriginationComponent = (
         getApplicationStatus(initData.applicationId);
         const verificationStatus = profile?.kycDetails?.verificationStatus;
 
-        console.log('verificationStatus ',initData);
-
         if (verificationStatus === undefined && step.id ==='verify-identity') {
           const applicationData = {
             firstName: profile.firstName,
@@ -153,6 +151,16 @@ const AccountOriginationComponent = (
       }
     }
   }, [initData.applicationId]);
+
+  useEffect(() => {
+    if (step.id === "processing-screen") {
+      setTimeout(() => {
+        fetchProfile();
+        getApplicationList();
+      }, 4000);
+
+    }
+  }, [step]);
 
   useEffect(() => {
     if (applicationList && applicationList.length > 0) {
@@ -240,6 +248,12 @@ const AccountOriginationComponent = (
   //
   // },[applicationStatus])
 
+  useEffect(() => {
+    if (isUpdatedKYCApplicant) {
+      setStep(_steps[2]);
+    }
+  }, [isUpdatedKYCApplicant]);
+
   const _handleBack = () => {
     const _index = _steps.findIndex(s => s.id === step.id);
     if (_index === -1) {
@@ -289,8 +303,8 @@ const AccountOriginationComponent = (
             applicationDetails.applicationId,
             requestId
           );
-          fetchProfile();
-          getApplicationList();
+          // fetchProfile();
+          // getApplicationList();
           setStep(_steps[2]);
         } catch (error) {
           console.log("error", error);
@@ -433,12 +447,14 @@ const AccountOriginationComponent = (
               </TouchableOpacity>
               <ComparisonVerificationComponent
                 initData={{
-                  firstName: `${profile?.kycDetails?.altFirstName ?? ""}`,
-                  lastName: `${profile?.kycDetails?.altLastName ?? ""}`,
-                  middleName: `${profile?.kycDetails?.altMiddleName ?? ""}`,
-                  dateOfBirth: `${profile?.kycDetails?.altDateOfBirth ?? ""}`,
-                  idType: `${profile?.kycDetails?.altIdType ?? ""}`,
-                  idIssuingCountry: "Singapore"
+                  firstName: `${profile?.kycDetails?.firstName ?? ""}`,
+                  lastName: `${profile?.kycDetails?.lastName ?? ""}`,
+                  middleName: `${profile?.kycDetails?.middleName ?? ""}`,
+                  dateOfBirth: `${profile?.kycDetails?.dateOfBirth ?? ""}`,
+                  idNumber:`${profile?.kycDetails?.idNumber ?? ""}`,
+                  dateOfExpiry:`${profile?.kycDetails?.idExpiredDate ?? ""}`,
+                  idType: `${profile?.kycDetails?.idType ?? ""}`,
+                  idIssuingCountry:`${profile?.kycDetails?.idIssuingCountry ?? ""}`,
                 }}
                 status={applicationKycStatus ? applicationKycStatus : undefined}
                 header={{
@@ -447,7 +463,11 @@ const AccountOriginationComponent = (
                 }}
                 applicationId={`${applicationStatus?.applicationId ?? ""}`}
                 onContinue={() => {
+                  // fetchProfile();
+                  console.log('ssssssss');
+
                   setStep(_steps[2]);
+
                 }}
                 style={styles?.mainDetailsComponentStyles}
               />

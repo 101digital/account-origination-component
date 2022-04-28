@@ -496,7 +496,7 @@ export function useAccountOriginationContextValue(): AccountOriginationContextDa
           setUpdatedKYCApplicant(true);
           setTimeout(() => {
             setUpdatedKYCApplicant(false);
-          }, 50);
+          }, 150);
 
           setUpdateingKYCApplicant(false);
       }

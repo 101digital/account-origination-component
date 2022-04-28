@@ -136,12 +136,12 @@ const ComparisonVerificationComponent = ({
               <TouchableOpacity
                 onPress={() => {
                   /// Auto fill sample data
-                  setFieldValue("firstName", "Ferdinan");
-                  setFieldValue("middleName", "Sharmal");
-                  setFieldValue("lastName", "Perera");
-                  setFieldValue("dateOfBirth", "12 / 07 /1991");
-                  setFieldValue("idNumber", "122324");
-                  setFieldValue("dateOfExpiry", "12 / 07 /1991");
+                  // setFieldValue("firstName", "Sharmal");
+                  setFieldValue("middleName", "Peter");
+                  // setFieldValue("lastName", "Perera");
+                  setFieldValue("dateOfBirth", "01 / 01 /1990");
+                  setFieldValue("idNumber", "999999999");
+                  setFieldValue("dateOfExpiry", "28 / 05 /2031");
                   setTimeout(() => {
                     formikRef?.current?.validateForm();
                   }, 0);

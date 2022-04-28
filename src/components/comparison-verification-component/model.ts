@@ -35,8 +35,7 @@ export const ComparisonVerificationSchema = () =>
       .trim()
       .required("Enter first name"),
     middleName: Yup.string()
-      .trim()
-      .required("Enter middle name"),
+      .trim(),
     lastName: Yup.string()
       .trim()
       .required("Enter last name"),
