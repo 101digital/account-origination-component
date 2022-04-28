@@ -139,9 +139,10 @@ const AccountOriginationComponent = (
       if (initData.applicationId !== 0) {
         getApplicationStatus(initData.applicationId);
         const verificationStatus = profile?.kycDetails?.verificationStatus;
-     
 
-        if (verificationStatus === undefined) {
+        console.log('verificationStatus ',initData);
+
+        if (verificationStatus === undefined && step.id ==='verify-identity') {
           const applicationData = {
             firstName: profile.firstName,
             lastName: profile.lastName,
@@ -198,6 +199,15 @@ const AccountOriginationComponent = (
                 break;
               case "Success":
                 onBack();
+                break;
+              default:
+                break;
+            }
+            break;
+          case "AML_NAME_SCREENING":
+            switch (nextCustomerAction.statusValue) {
+              case "Pending":
+                mainStepNumber = 2
                 break;
               default:
                 break;
