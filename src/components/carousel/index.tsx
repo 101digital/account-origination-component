@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 7,
   },
   cardContainerEnd: {
-    marginRight: 3,
+    marginRight: 15,
   },
   bulletsWrapper: {
     width: '100%',

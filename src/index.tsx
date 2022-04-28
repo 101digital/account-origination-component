@@ -135,17 +135,20 @@ const AccountOriginationComponent = (
   const windowWidth = Dimensions.get("window");
 
   useEffect(() => {
-    if (initData.applicationId !== 0) {
-      getApplicationStatus(initData.applicationId);
-      const verificationStatus = profile?.kycDetails?.verificationStatus;
+    if (initData && initData.applicationId) {
+      if (initData.applicationId !== 0) {
+        getApplicationStatus(initData.applicationId);
+        const verificationStatus = profile?.kycDetails?.verificationStatus;
+     
 
-      if (verificationStatus === undefined) {
-        const applicationData = {
-          firstName: profile.firstName,
-          lastName: profile.lastName,
-          applicationId: initData.applicationId
-        };
-        onfidoInitiate(applicationData);
+        if (verificationStatus === undefined) {
+          const applicationData = {
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            applicationId: initData.applicationId
+          };
+          onfidoInitiate(applicationData);
+        }
       }
     }
   }, [initData.applicationId]);
@@ -374,7 +377,6 @@ const AccountOriginationComponent = (
                 // getApplicationList();
 
                 onfidoInitiate(applicationDetails);
-                // setStep(_steps[1])
               }}
               onLogin={() => {
                 //navigation.navigate(Route.LOGIN_SCREEN, {});
@@ -452,7 +454,6 @@ const AccountOriginationComponent = (
                 applicationId={`${applicationStatus?.applicationId ?? ""}`}
                 onNext={() => {
                   // handle next step
-                  // setStep(_steps[2]);
                   onBack();
                 }}
               />

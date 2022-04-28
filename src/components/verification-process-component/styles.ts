@@ -17,7 +17,7 @@ const useMergeStyles = (
     mainContainerStyle: {
       flex: 1,
       // justifyContent: 'center',
-      paddingTop:80,
+      paddingTop:50,
       alignItems: 'center',
       paddingHorizontal: 24,
     },
@@ -73,13 +73,18 @@ const useMergeStyles = (
       fontWeight:'400'
     },
     dashboardCarousel: {
-      marginTop: 50,
+      marginTop: 60,
     },
     sliderContainerStyle:{
       flex: 1,
       paddingTop:80,
       alignItems: 'center',
+      // marginRight:
       // paddingHorizontal: 1,
+    },
+    imageCard:{
+      width: 109,
+      height: 34,
     }
   });
 
