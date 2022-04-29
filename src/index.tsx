@@ -231,6 +231,8 @@ const AccountOriginationComponent = (
     } else if (applicationStatus && applicationStatus.status) {
       if (applicationStatus.status === "Processing") {
         setStep(_steps[2]);
+      }else if (applicationStatus.status === "Completed") {
+        onBack();
       }
     }
   }, [applicationStatus]);
@@ -451,8 +453,8 @@ const AccountOriginationComponent = (
                   lastName: `${profile?.kycDetails?.lastName ?? ""}`,
                   middleName: `${profile?.kycDetails?.middleName ?? ""}`,
                   dateOfBirth: `${profile?.kycDetails?.dateOfBirth ?? ""}`,
-                  idNumber:`${profile?.kycDetails?.idNumber ?? ""}`,
-                  dateOfExpiry:`${profile?.kycDetails?.idExpiredDate ?? ""}`,
+                  idNumber:'',
+                  dateOfExpiry:'',
                   idType: `${profile?.kycDetails?.idType ?? ""}`,
                   idIssuingCountry:`${profile?.kycDetails?.idIssuingCountry ?? ""}`,
                 }}
