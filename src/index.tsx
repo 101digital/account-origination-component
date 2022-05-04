@@ -26,6 +26,7 @@ import ComparisonVerificationComponent, {
 import EDDComponent from "./components/edd-component";
 import VerificationProcessComponent from "./components/verification-process-component";
 import Loader from "./components/loader";
+import SuccessVerificationComponent from "./components/success-verification-component";
 
 import {
   CustomerInvokeComponent,
@@ -110,6 +111,8 @@ const AccountOriginationComponent = (
     defaultAccountOriginationSteps[initData.mainStepNumber]
   );
   const [showErrorModel, setShowErrorModel] = useState<boolean>(false);
+  const [showLoader, setShowLoader] = useState<boolean>(false);
+  const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [applicationKycStatus, setApplicationKycStatus] = useState<any>();
   const { data, clearData, clearErrors, errorAddMainDetails } = useContext(
     AccountOriginationContext
@@ -225,14 +228,21 @@ const AccountOriginationComponent = (
             break;
         }
       }
-
+      setShowLoader(false);
       setApplicationKycStatus(nextCustomerAction);
       setStep(_steps[mainStepNumber]);
+
     } else if (applicationStatus && applicationStatus.status) {
+      setShowLoader(false);
       if (applicationStatus.status === "Processing") {
         setStep(_steps[2]);
       }else if (applicationStatus.status === "Completed") {
-        onBack();
+        // onBack();
+        setIsCompleted(true)
+      }
+      else if (applicationStatus.status === "Approved") {
+        // onBack();
+        setIsCompleted(true)
       }
     }
   }, [applicationStatus]);
@@ -252,7 +262,9 @@ const AccountOriginationComponent = (
 
   useEffect(() => {
     if (isUpdatedKYCApplicant) {
-      setStep(_steps[2]);
+      // setStep(_steps[2]);
+
+      setShowLoader(true)
     }
   }, [isUpdatedKYCApplicant]);
 
@@ -356,8 +368,16 @@ const AccountOriginationComponent = (
     }
   };
 
-  if (isUpdatedKYCApplicant) {
-    return <Loader />;
+  if (showLoader) {
+    return <Loader onExacute={(count:number)=>{
+      if (count <3) {
+        fetchProfile();
+        getApplicationList();
+      }else{ 
+        setShowLoader(false);
+        setStep(_steps[2]);
+      }
+       }}/>;
   } else if (showErrorModel) {
     return (
       <SafeAreaView style={styles.errorContainer}>
@@ -386,6 +406,12 @@ const AccountOriginationComponent = (
           }}
         />
       </SafeAreaView>
+    );
+  } else if (isCompleted) {
+    return (
+      <SuccessVerificationComponent onNext={()=>{
+        onBack();
+      }} />
     );
   } else {
     return (
@@ -434,7 +460,10 @@ const AccountOriginationComponent = (
             />
           </>
         )}
-        {step.id === "processing-screen" && <VerificationProcessComponent />}
+        {step.id === "processing-screen" && <VerificationProcessComponent onExacute={()=>{
+          fetchProfile();
+          getApplicationList();
+          console.log('1111111'); }} />}
         {step.id === "comparison-verification" && (
           <SafeAreaView style={styles.container}>
             <View style={styles.containerStyle}>
@@ -466,8 +495,6 @@ const AccountOriginationComponent = (
                 applicationId={`${applicationStatus?.applicationId ?? ""}`}
                 onContinue={() => {
                   // fetchProfile();
-                  console.log('ssssssss');
-
                   setStep(_steps[2]);
 
                 }}

@@ -1,9 +1,33 @@
 import { colors, fonts } from '../../assets';
 import { LoaderIcon } from '../../assets/icons';
-import React from 'react';
+import React,{useEffect} from 'react';
 import { SafeAreaView, StyleSheet, Text } from 'react-native';
 
-const Loader = () => {
+
+interface ComponentProps {
+    onExacute: () => void;
+}
+
+export type LoaderProps = ComponentProps;
+
+const Loader = (prop: LoaderProps) => {
+  let count = 0
+
+  useEffect(()=>{
+    count = 0
+  },[])
+  useEffect(()=>{
+
+    var handle=setInterval(
+      () => {
+      count++;
+      prop.onExacute(count)},10000);
+
+    return ()=>{
+      clearInterval(handle);
+    }
+  });
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Hang on for a moment</Text>

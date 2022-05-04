@@ -26,6 +26,7 @@ const { width } = Dimensions.get('window');
 
 export type OngoingVerificationComponentProps = {
   style?: OngoingVerificationComponentStyles;
+  onExacute?:() => void;
 };
 
 export type OngoingVerificationComponentStyles = {
@@ -36,9 +37,17 @@ export type OngoingVerificationComponentStyles = {
   messageTextStyle?: StyleProp<TextStyle>;
 };
 
-const VerificationProcessComponent = ({style}:OngoingVerificationComponentProps) => {
+const VerificationProcessComponent = ({style,onExacute}:OngoingVerificationComponentProps) => {
   const styles: OngoingVerificationComponentStyles = useMergeStyles(style);
   const { colors, i18n } = useContext(ThemeContext);
+
+  useEffect(()=>{
+    var handle=setInterval(onExacute,20000);
+
+    return ()=>{
+      clearInterval(handle);
+    }
+  });
 
   const carouselList = [
     { item: <Page1 width={170} height={254}/> },

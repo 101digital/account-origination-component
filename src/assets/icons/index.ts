@@ -13,6 +13,7 @@ export * from "./attach.icon";
 export * from "./arrow-right.icon";
 export * from "./minus.icon";
 export * from "./ongoing.icon";
+export * from "./oncompleted.icon";
 
 export * from "./dashboard-poster-1.icon";
 export * from "./dashboard-poster-2.icon";
