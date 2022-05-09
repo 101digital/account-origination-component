@@ -34,8 +34,8 @@ export type ComparisonVerificationComponentProps = {
   header: HeaderComponentProps;
   onContinue: () => void;
   style?: ComparisonVerificationComponentStyles;
-  status?:any;
-  applicationId?:any;
+  status?: any;
+  applicationId?: any;
 };
 
 export type ComparisonVerificationComponentStyles = {
@@ -64,8 +64,11 @@ const ComparisonVerificationComponent = ({
   const [isAcceptCondition, setAcceptCondition] = useState(false);
   const [isOCRClear, setOCRClear] = useState(false);
 
-  const {  updateKYCApplicant,isUpdateingKYCApplicant,isUpdatedKYCApplicant } = useContext(AccountOriginationContext);
-
+  const {
+    updateKYCApplicant,
+    isUpdateingKYCApplicant,
+    isUpdatedKYCApplicant
+  } = useContext(AccountOriginationContext);
 
   const formikRef: any = useRef(null);
 
@@ -84,10 +87,9 @@ const ComparisonVerificationComponent = ({
   useEffect(() => {
     if (status) {
       if (status.statusValue !== "OCRConsider") {
-        setOCRClear(true)
+        setOCRClear(true);
       }
     }
-
   }, [status]);
 
   useEffect(() => {
@@ -95,6 +97,10 @@ const ComparisonVerificationComponent = ({
       formikRef?.current.setFieldValue(
         "dateOfBirth",
         moment(initData.dateOfBirth).format("DD / MM / YYYY")
+      );
+      formikRef?.current.setFieldValue(
+        "dateOfExpiry",
+        moment(initData.dateOfExpiry).format("DD / MM / YYYY")
       );
     }
   }, [initData]);
@@ -106,22 +112,28 @@ const ComparisonVerificationComponent = ({
         enableReinitialize={true}
         initialValues={
           initData ??
-          ComparisonVerificationData.empty(initData.firstName, initData.middleName, initData.lastName,initData.dateOfBirth)
+          ComparisonVerificationData.empty(
+            initData.firstName,
+            initData.middleName,
+            initData.lastName,
+            initData.dateOfBirth
+          )
         }
         validationSchema={ComparisonVerificationSchema()}
-        onSubmit={(data:any)=>{
-          let kycDetails={kycDetails:data}
-          kycDetails.kycDetails.dateOfBirth= moment(data.dateOfBirth, "DD / MM / YYYY").format(
-              "YYYY-MM-DD"
-            );
+        onSubmit={(data: any) => {
+          let kycDetails = { kycDetails: data };
+          kycDetails.kycDetails.dateOfBirth = moment(
+            data.dateOfBirth,
+            "DD / MM / YYYY"
+          ).format("YYYY-MM-DD");
 
-          kycDetails.kycDetails.dateOfExpiry= moment(data.dateOfExpiry, "DD / MM / YYYY").format(
-              "YYYY-MM-DD"
-            );
+          kycDetails.kycDetails.dateOfExpiry = moment(
+            data.dateOfExpiry,
+            "DD / MM / YYYY"
+          ).format("YYYY-MM-DD");
           if (applicationId) {
-              updateKYCApplicant(applicationId,kycDetails)
+            updateKYCApplicant(applicationId, kycDetails);
           }
-
         }}
       >
         {({ isValid, submitForm, setFieldValue }) => (
@@ -172,7 +184,7 @@ const ComparisonVerificationComponent = ({
                     borderWidth: 1,
                     borderRadius: 5,
                     borderBottomWidth: 1,
-                    backgroundColor: isOCRClear? '#EAEAEB':"#fff"
+                    backgroundColor: isOCRClear ? "#EAEAEB" : "#fff"
                   }
                 }}
                 editable={!isOCRClear}
@@ -193,7 +205,7 @@ const ComparisonVerificationComponent = ({
                     borderWidth: 1,
                     borderRadius: 5,
                     borderBottomWidth: 1,
-                    backgroundColor: isOCRClear? '#EAEAEB':"#fff"
+                    backgroundColor: isOCRClear ? "#EAEAEB" : "#fff"
                   }
                 }}
                 editable={!isOCRClear}
@@ -214,7 +226,7 @@ const ComparisonVerificationComponent = ({
                     borderWidth: 1,
                     borderRadius: 5,
                     borderBottomWidth: 1,
-                    backgroundColor: isOCRClear? '#EAEAEB':"#fff"
+                    backgroundColor: isOCRClear ? "#EAEAEB" : "#fff"
                   }
                 }}
                 editable={!isOCRClear}

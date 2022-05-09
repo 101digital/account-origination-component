@@ -244,6 +244,9 @@ const AccountOriginationComponent = (
         // onBack();
         setIsCompleted(true)
       }
+      else if (applicationStatus.status === 'Review') {
+       setIsValidated(true);
+      }
     }
   }, [applicationStatus]);
 
@@ -373,7 +376,7 @@ const AccountOriginationComponent = (
       if (count <3) {
         fetchProfile();
         getApplicationList();
-      }else{ 
+      }else{
         setShowLoader(false);
         setStep(_steps[2]);
       }
@@ -482,8 +485,8 @@ const AccountOriginationComponent = (
                   lastName: `${profile?.kycDetails?.lastName ?? ""}`,
                   middleName: `${profile?.kycDetails?.middleName ?? ""}`,
                   dateOfBirth: `${profile?.kycDetails?.dateOfBirth ?? ""}`,
-                  idNumber:'',
-                  dateOfExpiry:'',
+                  idNumber:`${profile?.kycDetails?.idNumber ?? ""}`,
+                  dateOfExpiry:`${profile?.kycDetails?.idExpiredDate ?? ""}`,
                   idType: `${profile?.kycDetails?.idType ?? ""}`,
                   idIssuingCountry:`${profile?.kycDetails?.idIssuingCountry ?? ""}`,
                 }}
