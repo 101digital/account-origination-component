@@ -88,6 +88,16 @@ export const defaultAccountOriginationSteps: StepData[] = [
     title: "Review captured information",
     subTitle:
       "We've captured the information from your ID. Is the captured information correct?"
+  },
+  {
+    id: "resubmit-screen",
+    title: "Resubmit screen",
+    subTitle: ""
+  },
+  {
+    id: "rejected-screen",
+    title: "Rejected screen",
+    subTitle: ""
   }
 ];
 const customerInvokeService = CustomerInvokeService.instance();
@@ -171,8 +181,14 @@ const AccountOriginationComponent = (
       const applicationId =
         applicationList[applicationList.length - 1].applicationId;
 
-      // get application status
-      getApplicationStatus(applicationId);
+        if (initData && !initData.applicationId) {
+          if (initData.applicationId !== 0) {
+            // get application status
+            getApplicationStatus(applicationId);
+          }
+
+        }
+
     }
   }, [applicationList]);
 
@@ -180,8 +196,11 @@ const AccountOriginationComponent = (
     if (applicationStatus && applicationStatus.nextCustomerAction) {
       const { nextCustomerAction, applicationId } = applicationStatus;
       let mainStepNumber = 0;
-
-      if (nextCustomerAction) {
+      if (applicationStatus.status === 'Resubmit'){
+        mainStepNumber = 5;
+      }else if (applicationStatus.status === 'Rejected'){
+        mainStepNumber = 6;
+      }else if (nextCustomerAction) {
         switch (nextCustomerAction.statusName) {
           case "KYC":
             switch (nextCustomerAction.statusValue) {
@@ -195,6 +214,12 @@ const AccountOriginationComponent = (
               case "OCRConsider":
               case "OCRClear":
                 mainStepNumber = 3;
+                break;
+              case 'Resubmit':
+                mainStepNumber = 5;
+                break;
+              case 'Rejected':
+                mainStepNumber = 6;
                 break;
               default:
                 break;
@@ -245,7 +270,12 @@ const AccountOriginationComponent = (
         setIsCompleted(true)
       }
       else if (applicationStatus.status === 'Review') {
-       setIsValidated(true);
+       setIsCompleted(true);
+      }
+      else if (applicationStatus.status === 'Resubmit') {
+        setStep(_steps[5]);
+      } else if (applicationStatus.status === 'Rejected') {
+        setStep(_steps[6]);
       }
     }
   }, [applicationStatus]);
@@ -514,6 +544,73 @@ const AccountOriginationComponent = (
                 }}
               />
             </SafeAreaView>
+          </>
+        )}
+        {step.id === "resubmit-screen" && (
+          <>
+          <SafeAreaView style={styles.errorContainer}>
+            <View style={styles.contentBox}>
+              <InfoIcon width={60} height={60} color={"#E06D6D"} />
+              <Text style={styles.messageTitle}>
+                {i18n?.t("account_origination.lbl_resubmit") ??
+                  "Resubmit ID"}
+              </Text>
+              <Text style={styles.messageDescription}>
+                {i18n?.t("account_origination.msg_id_not_supported") ??
+                  "We currently don't support the ID that you submitted. Please choose among the list of IDs accepted."}
+              </Text>
+            </View>
+            <Button
+              onPress={() => {
+                // onLogin();
+                // setShowErrorModel(false);
+                // "lbl_resubmit": "Resubmit ID",
+                // "msg_id_not_supported": "We currently don't support the ID that you submitted. Please choose among the list of IDs accepted.",
+                // "msg_id_expired": "We noticed that you submitted an expired ID. Please submit your most recent ID that matches the first name, last name and date of birth that you provided.",
+                // "msg_id_not_valid": "We noticed that you submitted a black and white ID photo. Please submit your most recent original, colored ID.",
+                // "btn_proceed": "Proceed",
+              }}
+              label={i18n?.t("account_origination.btn_proceed") ?? "Proceed"}
+              style={{
+                primaryContainerStyle: {
+                  marginHorizontal: 24,
+                  marginBottom: Platform.OS === "android" ? 24 : 0
+                }
+              }}
+            />
+          </SafeAreaView>
+          </>
+        )}
+        {step.id === "rejected-screen" && (
+          <>
+          <SafeAreaView style={styles.errorContainer}>
+            <View style={styles.contentBox}>
+              <InfoIcon width={60} height={60} color={"#E06D6D"} />
+              <Text style={styles.messageTitle}>
+                {i18n?.t("account_origination.lbl_rejected") ??
+                  "Your application has been reviewed."}
+              </Text>
+              <Text style={styles.messageDescription}>
+                {i18n?.t("account_origination.msg_rejected") ??
+                  "Thank you for your interest in UnionDigital Bank. We have reviewed your application and it was not approved at this time. You may apply again after 6 months."}
+              </Text>
+            </View>
+            <Button
+              onPress={() => {
+                // "msg_id_not_supported": "We currently don't support the ID that you submitted. Please choose among the list of IDs accepted.",
+                // "msg_id_expired": "We noticed that you submitted an expired ID. Please submit your most recent ID that matches the first name, last name and date of birth that you provided.",
+                // "msg_id_not_valid": "We noticed that you submitted a black and white ID photo. Please submit your most recent original, colored ID.",
+                // "btn_proceed": "Proceed",
+              }}
+              label={i18n?.t("account_origination.btn_ok") ?? "Ok"}
+              style={{
+                primaryContainerStyle: {
+                  marginHorizontal: 24,
+                  marginBottom: Platform.OS === "android" ? 24 : 0
+                }
+              }}
+            />
+          </SafeAreaView>
           </>
         )}
       </>
