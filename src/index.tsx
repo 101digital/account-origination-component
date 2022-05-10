@@ -320,8 +320,7 @@ const AccountOriginationComponent = (
             applicationDetails.applicationId,
             requestId
           );
-          // fetchProfile();
-          // getApplicationList();
+
           setStep(_steps[2]);
         } catch (error) {
           console.log("error", error);
@@ -428,13 +427,9 @@ const AccountOriginationComponent = (
               }}
               onBack={() => onBack()}
               onCompleted={applicationDetails => {
-                // fetchProfile()
-                // getApplicationList();
-
                 onfidoInitiate(applicationDetails);
               }}
               onLogin={() => {
-                //navigation.navigate(Route.LOGIN_SCREEN, {});
                 logout();
               }}
               initStep={
@@ -465,8 +460,7 @@ const AccountOriginationComponent = (
         )}
         {step.id === "processing-screen" && <VerificationProcessComponent onExacute={()=>{
           fetchProfile();
-          getApplicationList();
-          console.log('1111111'); }} />}
+          getApplicationList(); }} />}
         {step.id === "comparison-verification" && (
           <SafeAreaView style={styles.container}>
             <View style={styles.containerStyle}>
