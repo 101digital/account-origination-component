@@ -123,6 +123,7 @@ const AccountOriginationComponent = (
   const [showErrorModel, setShowErrorModel] = useState<boolean>(false);
   const [showLoader, setShowLoader] = useState<boolean>(false);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
+  const [resubmitType, setResubmitType] = useState<any>('');
   const [applicationKycStatus, setApplicationKycStatus] = useState<any>();
   const { data, clearData, clearErrors, errorAddMainDetails } = useContext(
     AccountOriginationContext
@@ -217,9 +218,7 @@ const AccountOriginationComponent = (
                 break;
               case 'Resubmit':
                 mainStepNumber = 5;
-                break;
-              case 'Rejected':
-                mainStepNumber = 6;
+                setResubmitType(nextCustomerAction.reasons[0].key)
                 break;
               default:
                 break;
@@ -264,16 +263,11 @@ const AccountOriginationComponent = (
       }else if (applicationStatus.status === "Completed") {
         // onBack();
         setIsCompleted(true)
-      }
-      else if (applicationStatus.status === "Approved") {
+      } else if (applicationStatus.status === "Approved") {
         // onBack();
         setIsCompleted(true)
-      }
-      else if (applicationStatus.status === 'Review') {
+      } else if (applicationStatus.status === 'Review') {
        setIsCompleted(true);
-      }
-      else if (applicationStatus.status === 'Resubmit') {
-        setStep(_steps[5]);
       } else if (applicationStatus.status === 'Rejected') {
         setStep(_steps[6]);
       }
@@ -313,12 +307,12 @@ const AccountOriginationComponent = (
     setStep(_steps[_index - 1]);
   };
 
-  useEffect(() => {
-    return () => {
-      clearData();
-      clearErrors();
-    };
-  }, []);
+  // useEffect(() => {
+  //   return () => {
+  //     clearData();
+  //     clearErrors();
+  //   };
+  // }, []);
 
   useEffect(() => {
     if (errorUpdateKYCApplicant) {
@@ -340,10 +334,11 @@ const AccountOriginationComponent = (
     requestId: string
   ) => {
     try {
+      setStep(_steps[2]);
       const result = await OnfidoComponent({ sdkToken: token });
 
       if (result === "UserCanceled") {
-        onBack();
+        // onBack();
       } else {
         try {
           await customerInvokeService.checkOnfidoSdkToken(
@@ -399,6 +394,21 @@ const AccountOriginationComponent = (
       });
     }
   };
+
+  const kycResubmit=()=>{
+
+
+    if (profile && applicationList && applicationList.length>0) {
+      const applicationData = {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        applicationId: applicationList[applicationList.length - 1].applicationId
+      };
+
+      onfidoInitiate(applicationData);
+    }
+
+  }
 
   if (showLoader) {
     return <Loader onExacute={(count:number)=>{
@@ -555,20 +565,26 @@ const AccountOriginationComponent = (
                 {i18n?.t("account_origination.lbl_resubmit") ??
                   "Resubmit ID"}
               </Text>
-              <Text style={styles.messageDescription}>
+              {resubmitType === 'unsupportedDocument ' ?  <Text style={styles.messageDescription}>
                 {i18n?.t("account_origination.msg_id_not_supported") ??
                   "We currently don't support the ID that you submitted. Please choose among the list of IDs accepted."}
-              </Text>
+              </Text> : resubmitType === 'documentExpired ' ?  <Text style={styles.messageDescription}>
+                {i18n?.t("account_origination.msg_id_expired") ??
+                  "We noticed that you submitted an expired ID. Please submit your most recent ID that matches the first name, last name and date of birth that you provided."}
+              </Text> : resubmitType === 'poorImageColor ' ?  <Text style={styles.messageDescription}>
+                {i18n?.t("account_origination.msg_id_not_valid") ??
+                  "We currently don't support the ID that you submitted. Please choose among the list of IDs accepted."}
+              </Text> :  <Text style={styles.messageDescription}>
+                {i18n?.t("account_origination.msg_error") ??
+                  "We encountered some issues with the ID that you submitted. Please re-intiate the digital ID verification."}
+              </Text>}
             </View>
             <Button
               onPress={() => {
-                // onLogin();
-                // setShowErrorModel(false);
-                // "lbl_resubmit": "Resubmit ID",
-                // "msg_id_not_supported": "We currently don't support the ID that you submitted. Please choose among the list of IDs accepted.",
-                // "msg_id_expired": "We noticed that you submitted an expired ID. Please submit your most recent ID that matches the first name, last name and date of birth that you provided.",
-                // "msg_id_not_valid": "We noticed that you submitted a black and white ID photo. Please submit your most recent original, colored ID.",
-                // "btn_proceed": "Proceed",
+
+                kycResubmit()
+
+
               }}
               label={i18n?.t("account_origination.btn_proceed") ?? "Proceed"}
               style={{
@@ -597,10 +613,7 @@ const AccountOriginationComponent = (
             </View>
             <Button
               onPress={() => {
-                // "msg_id_not_supported": "We currently don't support the ID that you submitted. Please choose among the list of IDs accepted.",
-                // "msg_id_expired": "We noticed that you submitted an expired ID. Please submit your most recent ID that matches the first name, last name and date of birth that you provided.",
-                // "msg_id_not_valid": "We noticed that you submitted a black and white ID photo. Please submit your most recent original, colored ID.",
-                // "btn_proceed": "Proceed",
+                  onLogin();
               }}
               label={i18n?.t("account_origination.btn_ok") ?? "Ok"}
               style={{
