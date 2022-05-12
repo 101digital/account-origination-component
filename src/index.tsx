@@ -398,11 +398,11 @@ const AccountOriginationComponent = (
   const kycResubmit=()=>{
 
 
-    if (profile && applicationList && applicationList.length>0) {
+    if (profile && applicationStatus) {
       const applicationData = {
         firstName: profile.firstName,
         lastName: profile.lastName,
-        applicationId: applicationList[applicationList.length - 1].applicationId
+        applicationId: applicationStatus.applicationId
       };
 
       onfidoInitiate(applicationData);
