@@ -1,7 +1,7 @@
 import { colors, fonts } from '../../assets';
 import { LoaderIcon } from '../../assets/icons';
 import React,{useEffect} from 'react';
-import { SafeAreaView, StyleSheet, Text } from 'react-native';
+import { SafeAreaView, StyleSheet, Text,ActivityIndicator } from 'react-native';
 
 
 interface ComponentProps {
@@ -16,6 +16,7 @@ const Loader = (prop: LoaderProps) => {
   useEffect(()=>{
     count = 0
   },[])
+
   useEffect(()=>{
 
     var handle=setInterval(
@@ -33,6 +34,11 @@ const Loader = (prop: LoaderProps) => {
       <Text style={styles.title}>Hang on for a moment</Text>
       <Text style={styles.subTitle}>We’re currently setting things up.</Text>
       <LoaderIcon width={60} height={60} />
+      <ActivityIndicator
+        size={'large'}
+        style={styles.loadingIndicatorStyle}
+        color={colors.primary}
+      />
     </SafeAreaView>
   );
 };
@@ -64,6 +70,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingBottom: 100,
   },
+  loadingIndicatorStyle: {
+      marginTop: 80,
+    },
 });
 
 export default Loader;
