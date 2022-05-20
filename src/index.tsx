@@ -123,7 +123,7 @@ const AccountOriginationComponent = (
   const [showErrorModel, setShowErrorModel] = useState<boolean>(false);
   const [showLoader, setShowLoader] = useState<boolean>(false);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
-  const [resubmitType, setResubmitType] = useState<any>('');
+  const [resubmitType, setResubmitType] = useState<any>("");
   const [applicationKycStatus, setApplicationKycStatus] = useState<any>();
   const { data, clearData, clearErrors, errorAddMainDetails } = useContext(
     AccountOriginationContext
@@ -154,7 +154,7 @@ const AccountOriginationComponent = (
         getApplicationStatus(initData.applicationId);
         const verificationStatus = profile?.kycDetails?.verificationStatus;
 
-        if (verificationStatus === undefined && step.id ==='verify-identity') {
+        if (verificationStatus === undefined && step.id === "verify-identity") {
           const applicationData = {
             firstName: profile.firstName,
             lastName: profile.lastName,
@@ -172,7 +172,6 @@ const AccountOriginationComponent = (
         fetchProfile();
         getApplicationList();
       }, 4000);
-
     }
   }, [step]);
 
@@ -182,14 +181,12 @@ const AccountOriginationComponent = (
       const applicationId =
         applicationList[applicationList.length - 1].applicationId;
 
-        if (initData && !initData.applicationId) {
-          if (initData.applicationId !== 0) {
-            // get application status
-            getApplicationStatus(applicationId);
-          }
-
+      if (initData && !initData.applicationId) {
+        if (initData.applicationId !== 0) {
+          // get application status
+          getApplicationStatus(applicationId);
         }
-
+      }
     }
   }, [applicationList]);
 
@@ -197,11 +194,11 @@ const AccountOriginationComponent = (
     if (applicationStatus && applicationStatus.nextCustomerAction) {
       const { nextCustomerAction, applicationId } = applicationStatus;
       let mainStepNumber = 0;
-      if (applicationStatus.status === 'Resubmit'){
+      if (applicationStatus.status === "Resubmit") {
         mainStepNumber = 5;
-      }else if (applicationStatus.status === 'Rejected'){
+      } else if (applicationStatus.status === "Rejected") {
         mainStepNumber = 6;
-      }else if (nextCustomerAction) {
+      } else if (nextCustomerAction) {
         switch (nextCustomerAction.statusName) {
           case "KYC":
             switch (nextCustomerAction.statusValue) {
@@ -216,9 +213,9 @@ const AccountOriginationComponent = (
               case "OCRClear":
                 mainStepNumber = 3;
                 break;
-              case 'Resubmit':
+              case "Resubmit":
                 mainStepNumber = 5;
-                setResubmitType(nextCustomerAction.reasons[0].key)
+                setResubmitType(nextCustomerAction.reasons[0].key);
                 break;
               default:
                 break;
@@ -242,7 +239,7 @@ const AccountOriginationComponent = (
           case "AML_NAME_SCREENING":
             switch (nextCustomerAction.statusValue) {
               case "Pending":
-                mainStepNumber = 2
+                mainStepNumber = 2;
                 break;
               default:
                 break;
@@ -255,20 +252,19 @@ const AccountOriginationComponent = (
       setShowLoader(false);
       setApplicationKycStatus(nextCustomerAction);
       setStep(_steps[mainStepNumber]);
-
     } else if (applicationStatus && applicationStatus.status) {
       setShowLoader(false);
       if (applicationStatus.status === "Processing") {
         setStep(_steps[2]);
-      }else if (applicationStatus.status === "Completed") {
+      } else if (applicationStatus.status === "Completed") {
         // onBack();
-        setIsCompleted(true)
+        setIsCompleted(true);
       } else if (applicationStatus.status === "Approved") {
         // onBack();
-        setIsCompleted(true)
-      } else if (applicationStatus.status === 'Review') {
-       setIsCompleted(true);
-      } else if (applicationStatus.status === 'Rejected') {
+        setIsCompleted(true);
+      } else if (applicationStatus.status === "Review") {
+        setIsCompleted(true);
+      } else if (applicationStatus.status === "Rejected") {
         setStep(_steps[6]);
       }
     }
@@ -291,7 +287,7 @@ const AccountOriginationComponent = (
     if (isUpdatedKYCApplicant) {
       // setStep(_steps[2]);
 
-      setShowLoader(true)
+      setShowLoader(true);
     }
   }, [isUpdatedKYCApplicant]);
 
@@ -395,9 +391,7 @@ const AccountOriginationComponent = (
     }
   };
 
-  const kycResubmit=()=>{
-
-
+  const kycResubmit = () => {
     if (profile && applicationStatus) {
       const applicationData = {
         firstName: profile.firstName,
@@ -407,19 +401,22 @@ const AccountOriginationComponent = (
 
       onfidoInitiate(applicationData);
     }
-
-  }
+  };
 
   if (showLoader) {
-    return <Loader onExacute={(count:number)=>{
-      if (count <3) {
-        fetchProfile();
-        getApplicationList();
-      }else{
-        setShowLoader(false);
-        setStep(_steps[2]);
-      }
-       }}/>;
+    return (
+      <Loader
+        onExacute={(count: number) => {
+          if (count < 3) {
+            fetchProfile();
+            getApplicationList();
+          } else {
+            setShowLoader(false);
+            setStep(_steps[2]);
+          }
+        }}
+      />
+    );
   } else if (showErrorModel) {
     return (
       <SafeAreaView style={styles.errorContainer}>
@@ -451,9 +448,11 @@ const AccountOriginationComponent = (
     );
   } else if (isCompleted) {
     return (
-      <SuccessVerificationComponent onNext={()=>{
-        onBack();
-      }} />
+      <SuccessVerificationComponent
+        onNext={() => {
+          onBack();
+        }}
+      />
     );
   } else {
     return (
@@ -498,9 +497,14 @@ const AccountOriginationComponent = (
             />
           </>
         )}
-        {step.id === "processing-screen" && <VerificationProcessComponent onExacute={()=>{
-          fetchProfile();
-          getApplicationList(); }} />}
+        {step.id === "processing-screen" && (
+          <VerificationProcessComponent
+            onExacute={() => {
+              fetchProfile();
+              getApplicationList();
+            }}
+          />
+        )}
         {step.id === "comparison-verification" && (
           <SafeAreaView style={styles.container}>
             <View style={styles.containerStyle}>
@@ -515,14 +519,15 @@ const AccountOriginationComponent = (
               </TouchableOpacity>
               <ComparisonVerificationComponent
                 initData={{
-                  firstName: `${profile?.kycDetails?.firstName ?? ""}`,
-                  lastName: `${profile?.kycDetails?.lastName ?? ""}`,
-                  middleName: `${profile?.kycDetails?.middleName ?? ""}`,
-                  dateOfBirth: `${profile?.kycDetails?.dateOfBirth ?? ""}`,
-                  idNumber:`${profile?.kycDetails?.idNumber ?? ""}`,
-                  dateOfExpiry:`${profile?.kycDetails?.idExpiredDate ?? ""}`,
+                  firstName: `${profile?.firstName ?? ""}`,
+                  lastName: `${profile?.lastName ?? ""}`,
+                  middleName: `${profile?.middleName ?? ""}`,
+                  dateOfBirth: `${profile?.dateOfBirth ?? ""}`,
+                  idNumber: `${profile?.kycDetails?.idNumber ?? ""}`,
+                  dateOfExpiry: `${profile?.kycDetails?.idExpiredDate ?? ""}`,
                   idType: `${profile?.kycDetails?.idType ?? ""}`,
-                  idIssuingCountry:`${profile?.kycDetails?.idIssuingCountry ?? ""}`,
+                  idIssuingCountry: `${profile?.kycDetails?.idIssuingCountry ??
+                    ""}`
                 }}
                 status={applicationKycStatus ? applicationKycStatus : undefined}
                 header={{
@@ -533,7 +538,6 @@ const AccountOriginationComponent = (
                 onContinue={() => {
                   // fetchProfile();
                   setStep(_steps[2]);
-
                 }}
                 style={styles?.mainDetailsComponentStyles}
               />
@@ -558,72 +562,76 @@ const AccountOriginationComponent = (
         )}
         {step.id === "resubmit-screen" && (
           <>
-          <SafeAreaView style={styles.errorContainer}>
-            <View style={styles.contentBox}>
-              <InfoIcon width={60} height={60} color={"#E06D6D"} />
-              <Text style={styles.messageTitle}>
-                {i18n?.t("account_origination.lbl_resubmit") ??
-                  "Resubmit ID"}
-              </Text>
-              {resubmitType === 'unsupportedDocument ' ?  <Text style={styles.messageDescription}>
-                {i18n?.t("account_origination.msg_id_not_supported") ??
-                  "We currently don't support the ID that you submitted. Please choose among the list of IDs accepted."}
-              </Text> : resubmitType === 'documentExpired ' ?  <Text style={styles.messageDescription}>
-                {i18n?.t("account_origination.msg_id_expired") ??
-                  "We noticed that you submitted an expired ID. Please submit your most recent ID that matches the first name, last name and date of birth that you provided."}
-              </Text> : resubmitType === 'poorImageColor ' ?  <Text style={styles.messageDescription}>
-                {i18n?.t("account_origination.msg_id_not_valid") ??
-                  "We currently don't support the ID that you submitted. Please choose among the list of IDs accepted."}
-              </Text> :  <Text style={styles.messageDescription}>
-                {i18n?.t("account_origination.msg_error") ??
-                  "We encountered some issues with the ID that you submitted. Please re-intiate the digital ID verification."}
-              </Text>}
-            </View>
-            <Button
-              onPress={() => {
-
-                kycResubmit()
-
-
-              }}
-              label={i18n?.t("account_origination.btn_proceed") ?? "Proceed"}
-              style={{
-                primaryContainerStyle: {
-                  marginHorizontal: 24,
-                  marginBottom: Platform.OS === "android" ? 24 : 0
-                }
-              }}
-            />
-          </SafeAreaView>
+            <SafeAreaView style={styles.errorContainer}>
+              <View style={styles.contentBox}>
+                <InfoIcon width={60} height={60} color={"#E06D6D"} />
+                <Text style={styles.messageTitle}>
+                  {i18n?.t("account_origination.lbl_resubmit") ?? "Resubmit ID"}
+                </Text>
+                {resubmitType === "unsupportedDocument " ? (
+                  <Text style={styles.messageDescription}>
+                    {i18n?.t("account_origination.msg_id_not_supported") ??
+                      "We currently don't support the ID that you submitted. Please choose among the list of IDs accepted."}
+                  </Text>
+                ) : resubmitType === "documentExpired " ? (
+                  <Text style={styles.messageDescription}>
+                    {i18n?.t("account_origination.msg_id_expired") ??
+                      "We noticed that you submitted an expired ID. Please submit your most recent ID that matches the first name, last name and date of birth that you provided."}
+                  </Text>
+                ) : resubmitType === "poorImageColor " ? (
+                  <Text style={styles.messageDescription}>
+                    {i18n?.t("account_origination.msg_id_not_valid") ??
+                      "We currently don't support the ID that you submitted. Please choose among the list of IDs accepted."}
+                  </Text>
+                ) : (
+                  <Text style={styles.messageDescription}>
+                    {i18n?.t("account_origination.msg_error") ??
+                      "We encountered some issues with the ID that you submitted. Please re-intiate the digital ID verification."}
+                  </Text>
+                )}
+              </View>
+              <Button
+                onPress={() => {
+                  kycResubmit();
+                }}
+                label={i18n?.t("account_origination.btn_proceed") ?? "Proceed"}
+                style={{
+                  primaryContainerStyle: {
+                    marginHorizontal: 24,
+                    marginBottom: Platform.OS === "android" ? 24 : 0
+                  }
+                }}
+              />
+            </SafeAreaView>
           </>
         )}
         {step.id === "rejected-screen" && (
           <>
-          <SafeAreaView style={styles.errorContainer}>
-            <View style={styles.contentBox}>
-              <InfoIcon width={60} height={60} color={"#E06D6D"} />
-              <Text style={styles.messageTitle}>
-                {i18n?.t("account_origination.lbl_rejected") ??
-                  "Your application has been reviewed."}
-              </Text>
-              <Text style={styles.messageDescription}>
-                {i18n?.t("account_origination.msg_rejected") ??
-                  "Thank you for your interest in UnionDigital Bank. We have reviewed your application and it was not approved at this time. You may apply again after 6 months."}
-              </Text>
-            </View>
-            <Button
-              onPress={() => {
+            <SafeAreaView style={styles.errorContainer}>
+              <View style={styles.contentBox}>
+                <InfoIcon width={60} height={60} color={"#E06D6D"} />
+                <Text style={styles.messageTitle}>
+                  {i18n?.t("account_origination.lbl_rejected") ??
+                    "Your application has been reviewed."}
+                </Text>
+                <Text style={styles.messageDescription}>
+                  {i18n?.t("account_origination.msg_rejected") ??
+                    "Thank you for your interest in UnionDigital Bank. We have reviewed your application and it was not approved at this time. You may apply again after 6 months."}
+                </Text>
+              </View>
+              <Button
+                onPress={() => {
                   onLogin();
-              }}
-              label={i18n?.t("account_origination.btn_ok") ?? "Ok"}
-              style={{
-                primaryContainerStyle: {
-                  marginHorizontal: 24,
-                  marginBottom: Platform.OS === "android" ? 24 : 0
-                }
-              }}
-            />
-          </SafeAreaView>
+                }}
+                label={i18n?.t("account_origination.btn_ok") ?? "Ok"}
+                style={{
+                  primaryContainerStyle: {
+                    marginHorizontal: 24,
+                    marginBottom: Platform.OS === "android" ? 24 : 0
+                  }
+                }}
+              />
+            </SafeAreaView>
           </>
         )}
       </>
