@@ -149,6 +149,7 @@ const AccountOriginationComponent = (
   const windowWidth = Dimensions.get("window");
 
   useEffect(() => {
+
     if (initData && initData.applicationId) {
       if (initData.applicationId !== 0) {
         getApplicationStatus(initData.applicationId);
@@ -164,7 +165,7 @@ const AccountOriginationComponent = (
         }
       }
     }
-  }, [initData.applicationId]);
+  }, []);
 
   useEffect(() => {
     if (step.id === "processing-screen") {
