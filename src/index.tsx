@@ -149,7 +149,6 @@ const AccountOriginationComponent = (
   const windowWidth = Dimensions.get("window");
 
   useEffect(() => {
-
     if (initData && initData.applicationId) {
       if (initData.applicationId !== 0) {
         getApplicationStatus(initData.applicationId);
@@ -264,7 +263,7 @@ const AccountOriginationComponent = (
         // onBack();
         setIsCompleted(true);
       } else if (applicationStatus.status === "Review") {
-        setIsCompleted(true);
+        setStep(_steps[2]);
       } else if (applicationStatus.status === "Rejected") {
         setStep(_steps[6]);
       }
